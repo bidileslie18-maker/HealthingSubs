@@ -4,69 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HealthingSubs</title>
+    <!-- PWA Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+              console.log('Service Worker registered with scope:', registration.scope);
+            }, err => {
+              console.log('Service Worker registration failed:', err);
+            });
+        });
+      }
+    </script>
+    <link rel="manifest" href="/manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Include the HTML5-QRCode scanner library -->
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
         }
-        #qr-reader {
-            width: 100%;
-        }
-        #qr-reader__dashboard_section_csr {
-            display: none !important;
-        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg">
-        <h1 class="text-3xl font-bold mb-6 text-gray-800 text-center">HealthingSubs Entry Form</h1>
-        <p class="text-gray-600 mb-6 text-center">To submit, enter both your Private ID and a Healthing Key. To check your submission history, only a Private ID is required.</p>
+    <div class="bg-white p-6 sm:p-8 rounded-lg shadow-2xl w-full max-w-lg">
+        <h1 class="text-3xl font-bold mb-4 text-gray-800 text-center">HealthingSubs Entry</h1>
+        <p class="text-gray-600 mb-6 text-center text-sm">To submit, enter both your Private ID and a Healthing Key. To check your submission history, only a Private ID is required.</p>
         
         <!-- Input Form -->
         <div id="inputForm" class="space-y-4">
             <div>
-                <label for="privateIdInput" class="block text-sm font-medium text-gray-700">Private ID</label>
+                <label for="privateIdInput" class="block text-sm font-medium text-gray-700 mb-1">Private ID</label>
                 <div class="flex items-center space-x-2">
-                    <input type="text" id="privateIdInput" placeholder="Enter Private ID"
+                    <input type="text" id="privateIdInput" placeholder="Enter or scan ID"
                            class="flex-grow px-4 py-3 text-gray-700 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300">
                     <button id="scanPrivateIdBtn" class="px-3 py-3 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15M12 4.5l-7.5 7.5m7.5-7.5l-7.5 7.5M12 19.5l-7.5-7.5m7.5 7.5l-7.5-7.5M12 4.5l-7.5 7.5m7.5-7.5l-7.5 7.5"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20.25h4v-4h-4v4zM10 16.25h4v-4h-4v4zM10 12.25h4v-4h-4v4zM10 8.25h4v-4h-4v4z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19.5v-15m-7.5 7.5h15m-7.5-7.5l-7.5 7.5m7.5-7.5l-7.5 7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20.25h4v-4h-4v4zM10 16.25h4v-4h-4v4zM10 12.25h4v-4h-4v4zM10 8.25h4v-4h-4v4z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19.5v-15m-7.5 7.5h15m-7.5-7.5l-7.5 7.5m7.5-7.5l-7.5 7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20.25h4v-4h-4v4zM10 16.25h4v-4h-4v4zM10 12.25h4v-4h-4v4zM10 8.25h4v-4h-4v4z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                            <path d="M3.75 3.75H7.5v-1.5H3.75a1.5 1.5 0 0 0-1.5 1.5v3.75h1.5v-3.75ZM20.25 2.25h-3.75v1.5h3.75a1.5 1.5 0 0 1 1.5 1.5v3.75h-1.5v-3.75ZM2.25 20.25v-3.75h1.5v3.75a1.5 1.5 0 0 0 1.5 1.5h3.75v-1.5H3.75a1.5 1.5 0 0 1-1.5-1.5ZM16.5 21.75h3.75a1.5 1.5 0 0 0 1.5-1.5v-3.75h-1.5v3.75h-3.75v1.5Z" />
                         </svg>
                     </button>
                 </div>
             </div>
             <div>
-                <label for="keyInput" class="block text-sm font-medium text-gray-700">Healthing Key</label>
+                <label for="keyInput" class="block text-sm font-medium text-gray-700 mb-1">Healthing Key</label>
                 <div class="flex items-center space-x-2">
-                    <input type="text" id="keyInput" placeholder="Enter Healthing Key (optional for history)"
+                    <input type="text" id="keyInput" placeholder="Enter or scan key"
                            class="flex-grow px-4 py-3 text-gray-700 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300">
                     <button id="scanKeyBtn" class="px-3 py-3 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15M12 4.5l-7.5 7.5m7.5-7.5l-7.5 7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5 7.5"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20.25h4v-4h-4v4zM10 16.25h4v-4h-4v4zM10 12.25h4v-4h-4v4zM10 8.25h4v-4h-4v4z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19.5v-15m-7.5 7.5h15m-7.5-7.5l-7.5 7.5m7.5-7.5l-7.5 7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5 7.5"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20.25h4v-4h-4v4zM10 16.25h4v-4h-4v4zM10 12.25h4v-4h-4v4zM10 8.25h4v-4h-4v4z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19.5v-15m-7.5 7.5h15m-7.5-7.5l-7.5 7.5m7.5-7.5l-7.5 7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5 7.5"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20.25h4v-4h-4v4zM10 16.25h4v-4h-4v4zM10 12.25h4v-4h-4v4zM10 8.25h4v-4h-4v4z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                            <path fill-rule="evenodd" d="M11.5 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM15.25 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM.75 12a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5H1.5a.75.75 0 0 1-.75-.75ZM22.5 12a.75.75 0 0 1-.75.75h-2.25a.75.75 0 0 1 0-1.5h2.25a.75.75 0 0 1 .75.75ZM18.75 15a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0v-2.25a.75.75 0 0 0-.75-.75ZM18.75 6.75a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0V7.5a.75.75 0 0 0-.75-.75ZM5.25 15a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0v-2.25a.75.75 0 0 0-.75-.75ZM5.25 6.75a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0V7.5a.75.75 0 0 0-.75-.75ZM6 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM10.5 7.5a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75ZM10.5 16.5a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
                         </svg>
                     </button>
                 </div>
             </div>
             
-            <div class="flex flex-col space-y-4">
-                <button id="submitBtn" class="w-full px-4 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+            <div class="flex flex-col space-y-3">
+                <button id="submitBtn" class="w-full px-4 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition duration-300 transform hover:scale-105">
                     Submit Key
                 </button>
-                <button id="checkHistoryBtn" class="w-full px-4 py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
+                <button id="checkHistoryBtn" class="w-full px-4 py-3 bg-gray-600 text-white font-bold rounded-lg shadow-md hover:bg-gray-700 transition duration-300 transform hover:scale-105">
                     Check History
                 </button>
             </div>
@@ -96,9 +92,21 @@
         <div id="message" class="mt-6 p-4 rounded-lg text-sm text-center font-medium transition-all duration-300 ease-in-out"></div>
     </div>
     
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').then(registration => {
+                    console.log('Service Worker registered with scope: ', registration.scope);
+                }, err => {
+                    console.log('Service Worker registration failed: ', err);
+                });
+            });
+        }
+        
         // Paste your Supabase Project URL and public 'anon' key here.
         const SUPABASE_URL = 'https://wprgkybgolraukwjexth.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwcmdreWJnb2xyYXVrd2pleHRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA5MzAsImV4cCI6MjA3MzIzNjkzMH0.5j9oUoRJNac37pU7MIspfK6Ei4Vol4NnMMCty1adGDA';
@@ -126,11 +134,13 @@
         // Function to display messages
         const displayMessage = (text, type) => {
             messageDiv.textContent = text;
-            messageDiv.classList.remove('bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+            messageDiv.classList.remove('bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700', 'bg-slate-100', 'text-slate-700');
             if (type === 'error') {
                 messageDiv.classList.add('bg-red-100', 'text-red-700');
             } else if (type === 'success') {
                 messageDiv.classList.add('bg-green-100', 'text-green-700');
+            } else if (type === 'info') {
+                messageDiv.classList.add('bg-slate-100', 'text-slate-700');
             }
         };
 
@@ -140,6 +150,7 @@
                 displayMessage("Private ID cannot be empty.", 'error');
                 return false;
             }
+            // Supabase query to check for Private ID validity
             const { data: idData, error: idError } = await supabase
                 .from('valid_private_ids')
                 .select('id')
@@ -156,7 +167,6 @@
         // Event listener for the "Check History" button
         checkHistoryBtn.addEventListener('click', async () => {
             const privateId = privateIdInput.value.trim();
-
             if (await isPrivateIdValid(privateId)) {
                 await fetchAndDisplayHistory(privateId);
                 inputForm.classList.add('hidden');
@@ -169,13 +179,11 @@
         submitBtn.addEventListener('click', async () => {
             const privateId = privateIdInput.value.trim();
             const key = keyInput.value.trim();
-
-            // Validate inputs
+            
             if (!key) {
                 displayMessage("Healthing Key cannot be empty.", 'error');
                 return;
             }
-
             if (!(await isPrivateIdValid(privateId))) {
                 return;
             }
@@ -201,8 +209,8 @@
                 // Step 2: If Key is valid and unused, log the submission
                 const { error: submissionError } = await supabase
                     .from('submission_history')
-                    .insert({ 
-                        private_id: privateId, 
+                    .insert({  
+                        private_id: privateId,  
                         healthing_key: key,
                         timestamp: new Date().toISOString()
                     });
@@ -280,8 +288,9 @@
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 inputForm.classList.add('hidden');
                 scannerSection.classList.remove('hidden');
-                displayMessage('', 'none');
+                displayMessage('Place the QR code inside the frame.', 'info');
                 
+                // Initialize the scanner
                 html5QrcodeScanner = new Html5QrcodeScanner(
                     "qr-reader",
                     { fps: 10, qrbox: { width: 250, height: 250 } },
@@ -301,7 +310,7 @@
                 };
                 
                 const onScanFailure = (error) => {
-                    // Do nothing on scan failure
+                    // This function is called constantly, so we don't need to log or display anything.
                 };
 
                 html5QrcodeScanner.render(onScanSuccess, onScanFailure);
