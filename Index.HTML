@@ -36,9 +36,9 @@
             <div>
                 <label for="privateIdInput" class="block text-sm font-medium text-gray-700 mb-1">Private ID</label>
                 <div class="flex items-center space-x-2">
-                    <input type="text" id="privateIdInput" placeholder="Enter ID"
+                    <input type="text" id="privateIdInput" placeholder="Enter or scan ID"
                            class="flex-grow px-4 py-3 text-gray-700 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300">
-                    <button id="scanBtn" class="px-3 py-3 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50">
+                    <button id="scanPrivateIdBtn" class="px-3 py-3 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
                             <path d="M3.75 3.75H7.5v-1.5H3.75a1.5 1.5 0 0 0-1.5 1.5v3.75h1.5v-3.75ZM20.25 2.25h-3.75v1.5h3.75a1.5 1.5 0 0 1 1.5 1.5v3.75h-1.5v-3.75ZM2.25 20.25v-3.75h1.5v3.75a1.5 1.5 0 0 0 1.5 1.5h3.75v-1.5H3.75a1.5 1.5 0 0 1-1.5-1.5ZM16.5 21.75h3.75a1.5 1.5 0 0 0 1.5-1.5v-3.75h-1.5v3.75h-3.75v1.5Z" />
                         </svg>
@@ -48,8 +48,13 @@
             <div>
                 <label for="keyInput" class="block text-sm font-medium text-gray-700 mb-1">Healthing Key</label>
                 <div class="flex items-center space-x-2">
-                    <input type="text" id="keyInput" placeholder="Enter key"
+                    <input type="text" id="keyInput" placeholder="Enter or scan key"
                            class="flex-grow px-4 py-3 text-gray-700 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300">
+                    <button id="scanKeyBtn" class="px-3 py-3 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                            <path fill-rule="evenodd" d="M11.5 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM15.25 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM.75 12a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5H1.5a.75.75 0 0 1-.75-.75ZM22.5 12a.75.75 0 0 1-.75.75h-2.25a.75.75 0 0 1 0-1.5h2.25a.75.75 0 0 1 .75.75ZM18.75 15a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0v-2.25a.75.75 0 0 0-.75-.75ZM18.75 6.75a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0V7.5a.75.75 0 0 0-.75-.75ZM5.25 15a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0v-2.25a.75.75 0 0 0-.75-.75ZM5.25 6.75a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0V7.5a.75.75 0 0 0-.75-.75ZM6 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM10.5 7.5a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75ZM10.5 16.5a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
                 </div>
             </div>
             
@@ -119,7 +124,8 @@
         const keyInput = document.getElementById('keyInput');
         const submitBtn = document.getElementById('submitBtn');
         const checkHistoryBtn = document.getElementById('checkHistoryBtn');
-        const scanBtn = document.getElementById('scanBtn');
+        const scanPrivateIdBtn = document.getElementById('scanPrivateIdBtn');
+        const scanKeyBtn = document.getElementById('scanKeyBtn');
         const cancelScanBtn = document.getElementById('cancelScanBtn');
         const messageDiv = document.getElementById('message');
         const inputForm = document.getElementById('inputForm');
@@ -133,6 +139,7 @@
         const startScanBtn = document.getElementById('startScanBtn');
         
         let html5Qrcode = null;
+        let isFullScanFlow = false;
         
         // Function to display messages
         const displayMessage = (text, type) => {
@@ -284,65 +291,52 @@
             keyInput.value = '';
         });
 
-        // QR Code Scanner Logic
-        const startScanner = (cameraId = undefined) => {
+        // Main QR Code Scanner Logic
+        const startScanner = (inputElement, isFullFlow) => {
+            isFullScanFlow = isFullFlow;
             inputForm.classList.add('hidden');
             scannerSection.classList.remove('hidden');
             cameraSelectContainer.classList.add('hidden');
-            scannerTitle.textContent = 'Scan Private ID';
-            displayMessage('Place the Private ID QR code inside the frame.', 'info');
-            
-            html5Qrcode = new Html5Qrcode("qr-reader");
 
-            const onScanSuccess = (decodedText, decodedResult) => {
-                if (!privateIdInput.value) {
-                    privateIdInput.value = decodedText;
-                    scannerTitle.textContent = 'Scan Healthing Key';
-                    displayMessage('Private ID saved. Now scan your Healthing Key.', 'success');
-                } else {
-                    keyInput.value = decodedText;
-                    // Auto-submit after scanning the key
-                    submitBtn.click();
-                    // Stop the scanner after a successful submission
-                    if (html5Qrcode && html5Qrcode.getState() !== 0) {
-                        html5Qrcode.stop();
-                        scannerSection.classList.add('hidden');
-                        inputForm.classList.remove('hidden');
-                    }
-                }
-            };
-            
-            html5Qrcode.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                onScanSuccess,
-                (error) => {
-                    // This will run constantly, no need to show a message unless it's a critical error
-                }
-            ).catch(err => {
-                displayMessage(`Could not start scanning: ${err.message}. Please check camera permissions.`, 'error');
-                console.error("Failed to start scanning:", err);
-            });
-        };
-        
-        scanBtn.addEventListener('click', () => {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                // If the user has already entered a Private ID, we can assume they want to scan a Healthing Key
-                if (privateIdInput.value) {
-                    scannerTitle.textContent = 'Scan Healthing Key';
-                    displayMessage('Place the Healthing Key QR code inside the frame.', 'info');
-                    inputForm.classList.add('hidden');
-                    scannerSection.classList.remove('hidden');
+            if (isFullScanFlow) {
+                scannerTitle.textContent = 'Scan Private ID';
+                displayMessage('Place the Private ID QR code inside the frame.', 'info');
+            } else {
+                scannerTitle.textContent = 'Scan Healthing Key';
+                displayMessage('Place the Healthing Key QR code inside the frame.', 'info');
+            }
+
+            Html5Qrcode.getCameras().then(devices => {
+                if (devices && devices.length) {
+                    const cameraId = devices[0].id;
                     html5Qrcode = new Html5Qrcode("qr-reader");
+
                     const onScanSuccess = (decodedText, decodedResult) => {
-                        keyInput.value = decodedText;
-                        submitBtn.click();
-                        if (html5Qrcode && html5Qrcode.getState() !== 0) {
-                            html5Qrcode.stop();
-                            scannerSection.classList.add('hidden');
-                            inputForm.classList.remove('hidden');
+                        if (isFullScanFlow) {
+                            if (!privateIdInput.value) {
+                                privateIdInput.value = decodedText;
+                                scannerTitle.textContent = 'Scan Healthing Key';
+                                displayMessage('Private ID saved. Now scan your Healthing Key.', 'success');
+                            } else {
+                                keyInput.value = decodedText;
+                                submitBtn.click();
+                                if (html5Qrcode && html5Qrcode.getState() !== 0) {
+                                    html5Qrcode.stop();
+                                    scannerSection.classList.add('hidden');
+                                    inputForm.classList.remove('hidden');
+                                }
+                            }
+                        } else {
+                            keyInput.value = decodedText;
+                            if (html5Qrcode && html5Qrcode.getState() !== 0) {
+                                html5Qrcode.stop();
+                                scannerSection.classList.add('hidden');
+                                inputForm.classList.remove('hidden');
+                                displayMessage(`Scanned successfully.`, 'success');
+                            }
                         }
                     };
+                    
                     html5Qrcode.start(
                         { facingMode: "environment" },
                         { fps: 10, qrbox: { width: 250, height: 250 } },
@@ -353,13 +347,18 @@
                         console.error("Failed to start scanning:", err);
                     });
                 } else {
-                    // Start the full two-step scanning process
-                    startScanner();
+                    displayMessage("No cameras found on this device.", 'error');
+                    cancelScanBtn.textContent = "Back";
                 }
-            } else {
-                displayMessage("Your browser does not support camera access for scanning.", 'error');
-            }
-        });
+            }).catch(err => {
+                displayMessage(`Error getting camera access: ${err.message}`, 'error');
+                console.error('Error getting camera devices:', err);
+                cancelScanBtn.textContent = "Back";
+            });
+        };
+        
+        scanPrivateIdBtn.addEventListener('click', () => startScanner(privateIdInput, true));
+        scanKeyBtn.addEventListener('click', () => startScanner(keyInput, false));
 
         // Event listener for the "Cancel Scan" button
         cancelScanBtn.addEventListener('click', () => {
@@ -384,4 +383,5 @@
     </script>
 </body>
 </html>
+
 
