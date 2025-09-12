@@ -1,0 +1,21 @@
+{
+  "name": "HealthingSubs",
+  "short_name": "HealthingSubs",
+  "description": "A healthing key submission tracker app.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1e293b",
+  "icons": [
+    {
+      "src": "https://placehold.co/192x192/475569/fff?text=HS",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://placehold.co/512x512/475569/fff?text=HS",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
