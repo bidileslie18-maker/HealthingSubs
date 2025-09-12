@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthingSubs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include the HTML5-QRCode scanner library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        #qr-reader {
+            width: 100%;
+        }
+        #qr-reader__dashboard_section_csr {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800 text-center">HealthingSubs Entry Form</h1>
+        <p class="text-gray-600 mb-6 text-center">To submit, enter both your Private ID and a Healthing Key. To check your submission history, only a Private ID is required.</p>
+        
+        <!-- Input Form -->
+        <div id="inputForm" class="space-y-4">
+            <div>
+                <label for="privateIdInput" class="block text-sm font-medium text-gray-700">Private ID</label>
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="privateIdInput" placeholder="Enter Private ID"
+                           class="flex-grow px-4 py-3 text-gray-700 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300">
+                    <button id="scanPrivateIdBtn" class="px-3 py-3 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15M12 4.5l-7.5 7.5m7.5-7.5l-7.5 7.5M12 19.5l-7.5-7.5m7.5 7.5l-7.5-7.5M12 4.5l-7.5 7.5m7.5-7.5l-7.5 7.5"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20.25h4v-4h-4v4zM10 16.25h4v-4h-4v4zM10 12.25h4v-4h-4v4zM10 8.25h4v-4h-4v4z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19.5v-15m-7.5 7.5h15m-7.5-7.5l-7.5 7.5m7.5-7.5l-7.5 7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20.25h4v-4h-4v4zM10 16.25h4v-4h-4v4zM10 12.25h4v-4h-4v4zM10 8.25h4v-4h-4v4z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19.5v-15m-7.5 7.5h15m-7.5-7.5l-7.5 7.5m7.5-7.5l-7.5 7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20.25h4v-4h-4v4zM10 16.25h4v-4h-4v4zM10 12.25h4v-4h-4v4zM10 8.25h4v-4h-4v4z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div>
+                <label for="keyInput" class="block text-sm font-medium text-gray-700">Healthing Key</label>
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="keyInput" placeholder="Enter Healthing Key (optional for history)"
+                           class="flex-grow px-4 py-3 text-gray-700 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300">
+                    <button id="scanKeyBtn" class="px-3 py-3 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15M12 4.5l-7.5 7.5m7.5-7.5l-7.5 7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5 7.5"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20.25h4v-4h-4v4zM10 16.25h4v-4h-4v4zM10 12.25h4v-4h-4v4zM10 8.25h4v-4h-4v4z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19.5v-15m-7.5 7.5h15m-7.5-7.5l-7.5 7.5m7.5-7.5l-7.5 7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5 7.5"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20.25h4v-4h-4v4zM10 16.25h4v-4h-4v4zM10 12.25h4v-4h-4v4zM10 8.25h4v-4h-4v4z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19.5v-15m-7.5 7.5h15m-7.5-7.5l-7.5 7.5m7.5-7.5l-7.5 7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5-7.5m7.5 7.5l-7.5 7.5"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20.25h4v-4h-4v4zM10 16.25h4v-4h-4v4zM10 12.25h4v-4h-4v4zM10 8.25h4v-4h-4v4z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex flex-col space-y-4">
+                <button id="submitBtn" class="w-full px-4 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                    Submit Key
+                </button>
+                <button id="checkHistoryBtn" class="w-full px-4 py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
+                    Check History
+                </button>
+            </div>
+        </div>
+
+        <!-- QR Code Scanner Section -->
+        <div id="scannerSection" class="hidden mt-8">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 text-center">Scan QR Code</h2>
+            <div id="qr-reader" class="w-full p-2 border border-gray-200 rounded-lg"></div>
+            <button id="cancelScanBtn" class="w-full mt-4 px-4 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
+                Cancel Scan
+            </button>
+        </div>
+
+        <!-- Submission History Report -->
+        <div id="historyReport" class="hidden mt-8">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 text-center">Submission History</h2>
+            <div id="historyList" class="space-y-4 overflow-y-auto max-h-64 p-2 border border-gray-200 rounded-lg">
+                <!-- History items will be dynamically added here -->
+            </div>
+            <button id="backToFormBtn" class="w-full mt-4 px-4 py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
+                Back to Submission
+            </button>
+        </div>
+
+        <!-- Message area -->
+        <div id="message" class="mt-6 p-4 rounded-lg text-sm text-center font-medium transition-all duration-300 ease-in-out"></div>
+    </div>
+    
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // Paste your Supabase Project URL and public 'anon' key here.
+        const SUPABASE_URL = 'https://wprgkybgolraukwjexth.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwcmdreWJnb2xyYXVrd2pleHRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA5MzAsImV4cCI6MjA3MzIzNjkzMH0.5j9oUoRJNac37pU7MIspfK6Ei4Vol4NnMMCty1adGDA';
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // DOM elements
+        const privateIdInput = document.getElementById('privateIdInput');
+        const keyInput = document.getElementById('keyInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const checkHistoryBtn = document.getElementById('checkHistoryBtn');
+        const scanPrivateIdBtn = document.getElementById('scanPrivateIdBtn');
+        const scanKeyBtn = document.getElementById('scanKeyBtn');
+        const cancelScanBtn = document.getElementById('cancelScanBtn');
+        const messageDiv = document.getElementById('message');
+        const inputForm = document.getElementById('inputForm');
+        const historyReport = document.getElementById('historyReport');
+        const historyList = document.getElementById('historyList');
+        const backToFormBtn = document.getElementById('backToFormBtn');
+        const scannerSection = document.getElementById('scannerSection');
+        
+        let html5QrcodeScanner = null;
+        let activeInput = null;
+
+        // Function to display messages
+        const displayMessage = (text, type) => {
+            messageDiv.textContent = text;
+            messageDiv.classList.remove('bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+            if (type === 'error') {
+                messageDiv.classList.add('bg-red-100', 'text-red-700');
+            } else if (type === 'success') {
+                messageDiv.classList.add('bg-green-100', 'text-green-700');
+            }
+        };
+
+        // Function to check if Private ID is valid
+        const isPrivateIdValid = async (privateId) => {
+            if (!privateId) {
+                displayMessage("Private ID cannot be empty.", 'error');
+                return false;
+            }
+            const { data: idData, error: idError } = await supabase
+                .from('valid_private_ids')
+                .select('id')
+                .eq('id', privateId)
+                .single();
+            
+            if (idError || !idData) {
+                displayMessage("Invalid Private ID.", 'error');
+                return false;
+            }
+            return true;
+        };
+        
+        // Event listener for the "Check History" button
+        checkHistoryBtn.addEventListener('click', async () => {
+            const privateId = privateIdInput.value.trim();
+
+            if (await isPrivateIdValid(privateId)) {
+                await fetchAndDisplayHistory(privateId);
+                inputForm.classList.add('hidden');
+                historyReport.classList.remove('hidden');
+                displayMessage('', 'none'); // Clear messages on form switch
+            }
+        });
+
+        // Event listener for the main "Submit Key" button
+        submitBtn.addEventListener('click', async () => {
+            const privateId = privateIdInput.value.trim();
+            const key = keyInput.value.trim();
+
+            // Validate inputs
+            if (!key) {
+                displayMessage("Healthing Key cannot be empty.", 'error');
+                return;
+            }
+
+            if (!(await isPrivateIdValid(privateId))) {
+                return;
+            }
+
+            try {
+                // Step 1: Check if the Healthing Key exists and is unused
+                const { data: keyData, error: keyError } = await supabase
+                    .from('healthing_keys')
+                    .select('is_used')
+                    .eq('key', key)
+                    .single();
+
+                if (keyError || !keyData) {
+                    displayMessage("Invalid Healthing Key.", 'error');
+                    return;
+                }
+                
+                if (keyData.is_used) {
+                    displayMessage("This Healthing Key has already been used.", 'error');
+                    return;
+                }
+
+                // Step 2: If Key is valid and unused, log the submission
+                const { error: submissionError } = await supabase
+                    .from('submission_history')
+                    .insert({ 
+                        private_id: privateId, 
+                        healthing_key: key,
+                        timestamp: new Date().toISOString()
+                    });
+                
+                if (submissionError) {
+                    throw submissionError;
+                }
+
+                // Step 3: Mark the Healthing Key as used
+                const { error: updateError } = await supabase
+                    .from('healthing_keys')
+                    .update({ is_used: true })
+                    .eq('key', key);
+
+                if (updateError) {
+                    throw updateError;
+                }
+
+                displayMessage(`Submission successful! Healthing Key is now used.`, 'success');
+                keyInput.value = ''; // Clear the Key input
+
+            } catch (error) {
+                console.error('Submission error:', error.message);
+                displayMessage(`An error occurred: ${error.message}`, 'error');
+            }
+        });
+
+        // Function to fetch and display submission history
+        const fetchAndDisplayHistory = async (privateId) => {
+            try {
+                const { data, error } = await supabase
+                    .from('submission_history')
+                    .select('*')
+                    .eq('private_id', privateId)
+                    .order('timestamp', { ascending: false });
+
+                if (error) {
+                    throw error;
+                }
+
+                historyList.innerHTML = ''; // Clear previous history
+                if (data.length === 0) {
+                    historyList.innerHTML = '<p class="text-gray-500 text-center">No submission history found for this ID.</p>';
+                    return;
+                }
+
+                data.forEach(item => {
+                    const submissionTime = new Date(item.timestamp).toLocaleString();
+                    const historyItem = document.createElement('div');
+                    historyItem.classList.add('p-3', 'bg-gray-100', 'rounded-lg', 'border', 'border-gray-200');
+                    historyItem.innerHTML = `
+                        <p><strong>Key:</strong> ${item.healthing_key}</p>
+                        <p class="text-xs text-gray-500">Submitted: ${submissionTime}</p>
+                    `;
+                    historyList.appendChild(historyItem);
+                });
+            } catch (error) {
+                console.error('Error fetching history:', error.message);
+                displayMessage(`Error fetching history: ${error.message}`, 'error');
+            }
+        };
+
+        // Event listener for the "Back to Form" button
+        backToFormBtn.addEventListener('click', () => {
+            historyReport.classList.add('hidden');
+            inputForm.classList.remove('hidden');
+            displayMessage('', 'none');
+            keyInput.value = '';
+        });
+
+        // QR Code Scanner Logic
+        const startScanner = (inputElement) => {
+            activeInput = inputElement;
+            
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                inputForm.classList.add('hidden');
+                scannerSection.classList.remove('hidden');
+                displayMessage('', 'none');
+                
+                html5QrcodeScanner = new Html5QrcodeScanner(
+                    "qr-reader",
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    /* verbose= */ false);
+                
+                const onScanSuccess = (decodedText, decodedResult) => {
+                    html5QrcodeScanner.stop().then(() => {
+                        scannerSection.classList.add('hidden');
+                        inputForm.classList.remove('hidden');
+                        
+                        activeInput.value = decodedText;
+                        displayMessage(`Scanned successfully.`, 'success');
+
+                    }).catch(err => {
+                        console.error("Failed to stop scanner: ", err);
+                    });
+                };
+                
+                const onScanFailure = (error) => {
+                    // Do nothing on scan failure
+                };
+
+                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+            } else {
+                displayMessage("Your browser does not support camera access for scanning.", 'error');
+            }
+        };
+        
+        scanPrivateIdBtn.addEventListener('click', () => startScanner(privateIdInput));
+        scanKeyBtn.addEventListener('click', () => startScanner(keyInput));
+
+        // Event listener for the "Cancel Scan" button
+        cancelScanBtn.addEventListener('click', () => {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    scannerSection.classList.add('hidden');
+                    inputForm.classList.remove('hidden');
+                    displayMessage('', 'none'); // Clear message
+                }).catch(err => {
+                    console.error("Failed to stop scanner:", err);
+                    scannerSection.classList.add('hidden');
+                    inputForm.classList.remove('hidden');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
