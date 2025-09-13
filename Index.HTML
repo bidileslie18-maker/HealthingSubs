@@ -121,6 +121,14 @@
         let html5Qrcode = null;
         let scanTarget = null; // 'privateId' or 'healthKey'
 
+        // Deep linking: Check for a privateId in the URL when the page loads
+        const urlParams = new URLSearchParams(window.location.search);
+        const privateIdFromUrl = urlParams.get('privateId');
+        if (privateIdFromUrl) {
+            privateIdInput.value = privateIdFromUrl;
+            displayMessage('Private ID found in URL. Ready to check history or submit.', 'success');
+        }
+
         // Function to display messages
         const displayMessage = (text, type) => {
             messageDiv.textContent = text;
@@ -350,6 +358,8 @@
     </script>
 </body>
 </html>
+
+
 
 
 
