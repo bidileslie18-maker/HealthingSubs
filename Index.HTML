@@ -71,12 +71,6 @@
         <!-- QR Code Scanner Section -->
         <div id="scannerSection" class="hidden mt-8">
             <h2 id="scanner-title" class="text-2xl font-bold mb-4 text-gray-800 text-center">Scan QR Code</h2>
-            <!-- Camera selection dropdown added here -->
-            <div id="camera-select-container" class="hidden mb-4">
-                <label for="camera-select" class="block text-sm font-medium text-gray-700 mb-1">Select Camera</label>
-                <select id="camera-select" class="w-full px-4 py-3 text-gray-700 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"></select>
-                <button id="startScanBtn" class="w-full mt-2 px-4 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 transition duration-300">Start Scanning</button>
-            </div>
             <div id="qr-reader" class="w-full p-2 border border-gray-200 rounded-lg"></div>
             <button id="cancelScanBtn" class="w-full mt-4 px-4 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
                 Cancel Scan
@@ -104,7 +98,6 @@
 
         // NOTE: For a real-world application, these keys should be handled securely,
         // e.g., using environment variables on a server.
-        // I've kept them here for demonstration purposes.
         const SUPABASE_URL = 'https://wprgkybgolraukwjexth.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwcmdreWJnb2xyYXVrd2pleHRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA5MzAsImV4cCI6MjA3MzIzNjkzMH0.5j9oUoRJNac37pU7MIspfK6Ei4Vol4NnMMCty1adGDA';
 
@@ -124,10 +117,6 @@
         const historyList = document.getElementById('historyList');
         const backToFormBtn = document.getElementById('backToFormBtn');
         const scannerSection = document.getElementById('scannerSection');
-        const scannerTitle = document.getElementById('scanner-title');
-        const cameraSelectContainer = document.getElementById('camera-select-container');
-        const cameraSelect = document.getElementById('camera-select');
-        const startScanBtn = document.getElementById('startScanBtn');
 
         let html5Qrcode = null;
         let scanTarget = null; // 'privateId' or 'healthKey'
@@ -275,7 +264,7 @@
         };
 
         // Function to stop the scanner and hide the UI
-        const stopScannerAndHideUI = () => {
+        const stopScanner = () => {
             if (html5Qrcode && html5Qrcode.getState() !== 0) {
                 html5Qrcode.stop().then(() => {
                     scannerSection.classList.add('hidden');
@@ -302,105 +291,64 @@
         });
 
         // Main QR Code Scanner Logic
-        const startScanner = async (target, isFullFlow) => {
+        const startScanner = (target) => {
             scanTarget = target;
             inputForm.classList.add('hidden');
             scannerSection.classList.remove('hidden');
             displayMessage('Initializing camera...', 'info');
 
-            try {
-                const devices = await Html5Qrcode.getCameras();
-                if (devices && devices.length > 0) {
-                    // If more than one camera is available, show the selection dropdown
-                    if (devices.length > 1) {
-                        cameraSelect.innerHTML = '';
-                        devices.forEach(device => {
-                            const option = document.createElement('option');
-                            option.value = device.id;
-                            option.textContent = device.label || `Camera ${cameraSelect.options.length + 1}`;
-                            cameraSelect.appendChild(option);
-                        });
-                        cameraSelectContainer.classList.remove('hidden');
-                        displayMessage('Select a camera to begin scanning.', 'info');
-
-                        startScanBtn.onclick = () => {
-                            const selectedCameraId = cameraSelect.value;
-                            startCamera(selectedCameraId, isFullFlow);
-                            cameraSelectContainer.classList.add('hidden');
-                        };
-
-                    } else {
-                        // Only one camera, start scanning immediately
-                        startCamera(devices[0].id, isFullFlow);
-                    }
-                } else {
-                    displayMessage("No cameras found on this device.", 'error');
-                    cancelScanBtn.textContent = "Back";
-                }
-            } catch (err) {
-                displayMessage(`Error getting camera access: ${err.message}. Please check camera permissions.`, 'error');
-                console.error('Error getting camera devices:', err);
-                cancelScanBtn.textContent = "Back";
-            }
-        };
-
-        const startCamera = (cameraId, isFullFlow) => {
             html5Qrcode = new Html5Qrcode("qr-reader");
 
             const onScanSuccess = async (decodedText, decodedResult) => {
-                // If a full scan flow is enabled, process the private ID first.
-                if (isFullFlow) {
-                    if (scanTarget === 'privateId') {
-                        privateIdInput.value = decodedText;
-                        displayMessage('Private ID scanned. Now scan the Healthing Key.', 'success');
-                        await stopScannerAndHideUI();
-                        // Re-start scanner for the next key
-                        startScanner('healthKey', false);
-                    } else {
-                        keyInput.value = decodedText;
-                        displayMessage('Healthing Key scanned. Submitting...', 'success');
-                        await stopScannerAndHideUI();
-                        submitBtn.click();
-                    }
-                } else {
-                    // Regular scan flow for a single field
-                    if (scanTarget === 'privateId') {
-                        privateIdInput.value = decodedText;
-                    } else {
-                        keyInput.value = decodedText;
-                    }
-                    displayMessage(`Scanned successfully.`, 'success');
-                    await stopScannerAndHideUI();
+                // Stop the current scan immediately
+                await html5Qrcode.stop();
+
+                if (scanTarget === 'privateId') {
+                    privateIdInput.value = decodedText;
+                    displayMessage('Private ID scanned successfully.', 'success');
+                    stopScanner();
+                } else { // scanTarget === 'healthKey'
+                    keyInput.value = decodedText;
+                    displayMessage('Healthing Key scanned. Submitting...', 'info');
+                    // Stop the scanner first, then submit
+                    stopScanner();
+                    submitBtn.click();
                 }
             };
 
+            const onScanError = (errorMessage) => {
+                // Suppress constant error logging for a smoother experience
+            };
+
+            // Force rear camera by specifying "environment" facing mode
             html5Qrcode.start(
-                cameraId,
+                { facingMode: 'environment' },
                 { fps: 10, qrbox: { width: 250, height: 250 } },
                 onScanSuccess,
-                (error) => {} // Suppress constant error logging
+                onScanError
             ).catch(err => {
                 displayMessage(`Could not start scanning: ${err.message}. Please check camera permissions.`, 'error');
                 console.error("Failed to start scanning:", err);
-                stopScannerAndHideUI();
+                stopScanner();
             });
         };
 
+        // Event listeners for the scan buttons
         scanPrivateIdBtn.addEventListener('click', () => {
-            // Start a full, two-step scan flow
-            startScanner('privateId', true);
+            startScanner('privateId');
         });
         scanKeyBtn.addEventListener('click', () => {
-            // Start a single scan for the key only
-            startScanner('healthKey', false);
+            startScanner('healthKey');
         });
-
+        
         // Event listener for the "Cancel Scan" button
         cancelScanBtn.addEventListener('click', () => {
-            stopScannerAndHideUI();
+            stopScanner();
         });
     </script>
 </body>
 </html>
+
+
 
 
