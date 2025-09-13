@@ -6,16 +6,16 @@
     <title>HealthingSubs</title>
     <!-- PWA Service Worker -->
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/service-worker.js')
-            .then(registration => {
-              console.log('Service Worker registered with scope:', registration.scope);
-            }, err => {
-              console.log('Service Worker registration failed:', err);
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                    }, err => {
+                        console.log('Service Worker registration failed:', err);
+                    });
             });
-        });
-      }
+        }
     </script>
     <link rel="manifest" href="/manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -30,7 +30,7 @@
     <div class="bg-white p-6 sm:p-8 rounded-lg shadow-2xl w-full max-w-lg">
         <h1 class="text-3xl font-bold mb-4 text-gray-800 text-center">HealthingSubs Entry</h1>
         <p class="text-gray-600 mb-6 text-center text-sm">To submit, enter both your Private ID and a Healthing Key. To check your submission history, only a Private ID is required.</p>
-        
+
         <!-- Input Form -->
         <div id="inputForm" class="space-y-4">
             <div>
@@ -57,7 +57,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <div class="flex flex-col space-y-3">
                 <button id="submitBtn" class="w-full px-4 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition duration-300 transform hover:scale-105">
                     Submit Key
@@ -97,23 +97,14 @@
         <!-- Message area -->
         <div id="message" class="mt-6 p-4 rounded-lg text-sm text-center font-medium transition-all duration-300 ease-in-out"></div>
     </div>
-    
+
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-        // PWA Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js').then(registration => {
-                    console.log('Service Worker registered with scope: ', registration.scope);
-                }, err => {
-                    console.log('Service Worker registration failed: ', err);
-                });
-            });
-        }
-        
-        // Paste your Supabase Project URL and public 'anon' key here.
+        // NOTE: For a real-world application, these keys should be handled securely,
+        // e.g., using environment variables on a server.
+        // I've kept them here for demonstration purposes.
         const SUPABASE_URL = 'https://wprgkybgolraukwjexth.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwcmdreWJnb2xyYXVrd2pleHRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA5MzAsImV4cCI6MjA3MzIzNjkzMH0.5j9oUoRJNac37pU7MIspfK6Ei4Vol4NnMMCty1adGDA';
 
@@ -137,10 +128,10 @@
         const cameraSelectContainer = document.getElementById('camera-select-container');
         const cameraSelect = document.getElementById('camera-select');
         const startScanBtn = document.getElementById('startScanBtn');
-        
+
         let html5Qrcode = null;
-        let isFullScanFlow = false;
-        
+        let scanTarget = null; // 'privateId' or 'healthKey'
+
         // Function to display messages
         const displayMessage = (text, type) => {
             messageDiv.textContent = text;
@@ -166,14 +157,14 @@
                 .select('id')
                 .eq('id', privateId)
                 .single();
-            
+
             if (idError || !idData) {
                 displayMessage("Invalid Private ID.", 'error');
                 return false;
             }
             return true;
         };
-        
+
         // Event listener for the "Check History" button
         checkHistoryBtn.addEventListener('click', async () => {
             const privateId = privateIdInput.value.trim();
@@ -189,7 +180,7 @@
         submitBtn.addEventListener('click', async () => {
             const privateId = privateIdInput.value.trim();
             const key = keyInput.value.trim();
-            
+
             if (!key) {
                 displayMessage("Healthing Key cannot be empty.", 'error');
                 return;
@@ -210,7 +201,7 @@
                     displayMessage("Invalid Healthing Key.", 'error');
                     return;
                 }
-                
+
                 if (keyData.is_used) {
                     displayMessage("This Healthing Key has already been used.", 'error');
                     return;
@@ -219,12 +210,12 @@
                 // Step 2: If Key is valid and unused, log the submission
                 const { error: submissionError } = await supabase
                     .from('submission_history')
-                    .insert({  
-                        private_id: privateId,  
+                    .insert({
+                        private_id: privateId,
                         healthing_key: key,
                         timestamp: new Date().toISOString()
                     });
-                
+
                 if (submissionError) {
                     throw submissionError;
                 }
@@ -311,66 +302,98 @@
         });
 
         // Main QR Code Scanner Logic
-        const startScanner = (inputElement, isFullFlow) => {
-            isFullScanFlow = isFullFlow;
+        const startScanner = async (target, isFullFlow) => {
+            scanTarget = target;
             inputForm.classList.add('hidden');
             scannerSection.classList.remove('hidden');
-            cameraSelectContainer.classList.add('hidden');
+            displayMessage('Initializing camera...', 'info');
 
-            if (isFullScanFlow) {
-                scannerTitle.textContent = 'Scan Private ID';
-                displayMessage('Place the Private ID QR code inside the frame.', 'info');
-            } else {
-                scannerTitle.textContent = 'Scan Healthing Key';
-                displayMessage('Place the Healthing Key QR code inside the frame.', 'info');
-            }
+            try {
+                const devices = await Html5Qrcode.getCameras();
+                if (devices && devices.length > 0) {
+                    // If more than one camera is available, show the selection dropdown
+                    if (devices.length > 1) {
+                        cameraSelect.innerHTML = '';
+                        devices.forEach(device => {
+                            const option = document.createElement('option');
+                            option.value = device.id;
+                            option.textContent = device.label || `Camera ${cameraSelect.options.length + 1}`;
+                            cameraSelect.appendChild(option);
+                        });
+                        cameraSelectContainer.classList.remove('hidden');
+                        displayMessage('Select a camera to begin scanning.', 'info');
 
-            Html5Qrcode.getCameras().then(devices => {
-                if (devices && devices.length) {
-                    const cameraId = devices[0].id;
-                    html5Qrcode = new Html5Qrcode("qr-reader");
+                        startScanBtn.onclick = () => {
+                            const selectedCameraId = cameraSelect.value;
+                            startCamera(selectedCameraId, isFullFlow);
+                            cameraSelectContainer.classList.add('hidden');
+                        };
 
-                    const onScanSuccess = (decodedText, decodedResult) => {
-                        if (isFullScanFlow) {
-                            if (!privateIdInput.value) {
-                                privateIdInput.value = decodedText;
-                                scannerTitle.textContent = 'Scan Healthing Key';
-                                displayMessage('Private ID saved. Now scan your Healthing Key.', 'success');
-                            } else {
-                                keyInput.value = decodedText;
-                                submitBtn.click();
-                                stopScannerAndHideUI(); // Use the new function
-                            }
-                        } else {
-                            keyInput.value = decodedText;
-                            displayMessage(`Scanned successfully.`, 'success');
-                            stopScannerAndHideUI(); // Use the new function
-                        }
-                    };
-                    
-                    html5Qrcode.start(
-                        { facingMode: "environment" },
-                        { fps: 10, qrbox: { width: 250, height: 250 } },
-                        onScanSuccess,
-                        (error) => {}
-                    ).catch(err => {
-                        displayMessage(`Could not start scanning: ${err.message}. Please check camera permissions.`, 'error');
-                        console.error("Failed to start scanning:", err);
-                        stopScannerAndHideUI(); // Use the new function
-                    });
+                    } else {
+                        // Only one camera, start scanning immediately
+                        startCamera(devices[0].id, isFullFlow);
+                    }
                 } else {
                     displayMessage("No cameras found on this device.", 'error');
                     cancelScanBtn.textContent = "Back";
                 }
-            }).catch(err => {
-                displayMessage(`Error getting camera access: ${err.message}`, 'error');
+            } catch (err) {
+                displayMessage(`Error getting camera access: ${err.message}. Please check camera permissions.`, 'error');
                 console.error('Error getting camera devices:', err);
                 cancelScanBtn.textContent = "Back";
+            }
+        };
+
+        const startCamera = (cameraId, isFullFlow) => {
+            html5Qrcode = new Html5Qrcode("qr-reader");
+
+            const onScanSuccess = async (decodedText, decodedResult) => {
+                // If a full scan flow is enabled, process the private ID first.
+                if (isFullFlow) {
+                    if (scanTarget === 'privateId') {
+                        privateIdInput.value = decodedText;
+                        displayMessage('Private ID scanned. Now scan the Healthing Key.', 'success');
+                        await stopScannerAndHideUI();
+                        // Re-start scanner for the next key
+                        startScanner('healthKey', false);
+                    } else {
+                        keyInput.value = decodedText;
+                        displayMessage('Healthing Key scanned. Submitting...', 'success');
+                        await stopScannerAndHideUI();
+                        submitBtn.click();
+                    }
+                } else {
+                    // Regular scan flow for a single field
+                    if (scanTarget === 'privateId') {
+                        privateIdInput.value = decodedText;
+                    } else {
+                        keyInput.value = decodedText;
+                    }
+                    displayMessage(`Scanned successfully.`, 'success');
+                    await stopScannerAndHideUI();
+                }
+            };
+
+            html5Qrcode.start(
+                cameraId,
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                onScanSuccess,
+                (error) => {} // Suppress constant error logging
+            ).catch(err => {
+                displayMessage(`Could not start scanning: ${err.message}. Please check camera permissions.`, 'error');
+                console.error("Failed to start scanning:", err);
+                stopScannerAndHideUI();
             });
         };
-        
-        scanPrivateIdBtn.addEventListener('click', () => startScanner(privateIdInput, true));
-        scanKeyBtn.addEventListener('click', () => startScanner(keyInput, false));
+
+        scanPrivateIdBtn.addEventListener('click', () => {
+            // Start a full, two-step scan flow
+            startScanner('privateId', true);
+        });
+        scanKeyBtn.addEventListener('click', () => {
+            // Start a single scan for the key only
+            startScanner('healthKey', false);
+        });
 
         // Event listener for the "Cancel Scan" button
         cancelScanBtn.addEventListener('click', () => {
@@ -379,4 +402,5 @@
     </script>
 </body>
 </html>
+
 
