@@ -263,23 +263,20 @@
             }
         };
 
-        // Function to stop the scanner and hide the UI
+        // Function to stop the scanner and hide the UI, handling different states
         const stopScanner = () => {
+            // First, immediately hide the scanner UI and show the form
+            scannerSection.classList.add('hidden');
+            inputForm.classList.remove('hidden');
+            displayMessage('', 'none'); // Clear message
+
+            // Attempt to stop the camera stream only if the scanner is running
             if (html5Qrcode && html5Qrcode.getState() !== 0) {
-                html5Qrcode.stop().then(() => {
-                    scannerSection.classList.add('hidden');
-                    inputForm.classList.remove('hidden');
-                    html5Qrcode = null;
-                }).catch(err => {
-                    console.error("Failed to stop scanner:", err);
-                    scannerSection.classList.add('hidden');
-                    inputForm.classList.remove('hidden');
+                html5Qrcode.stop().catch(err => {
+                    console.warn("Html5Qrcode.stop() failed, but UI is updated:", err);
                 });
-            } else {
-                scannerSection.classList.add('hidden');
-                inputForm.classList.remove('hidden');
             }
-            displayMessage('', 'none'); // Clear message regardless of outcome
+            html5Qrcode = null;
         };
 
         // Event listener for the "Back to Form" button
@@ -295,24 +292,29 @@
             scanTarget = target;
             inputForm.classList.add('hidden');
             scannerSection.classList.remove('hidden');
+            document.getElementById('scanner-title').textContent = `Scan ${target === 'privateId' ? 'Private ID' : 'Healthing Key'}`;
             displayMessage('Initializing camera...', 'info');
 
             html5Qrcode = new Html5Qrcode("qr-reader");
 
-            const onScanSuccess = async (decodedText, decodedResult) => {
-                // Stop the current scan immediately
-                await html5Qrcode.stop();
-
+            const onScanSuccess = (decodedText) => {
+                // Fill the input field with the scanned text
                 if (scanTarget === 'privateId') {
                     privateIdInput.value = decodedText;
                     displayMessage('Private ID scanned successfully.', 'success');
-                    stopScanner();
                 } else { // scanTarget === 'healthKey'
                     keyInput.value = decodedText;
                     displayMessage('Healthing Key scanned. Submitting...', 'info');
-                    // Stop the scanner first, then submit
-                    stopScanner();
-                    submitBtn.click();
+                }
+                
+                // Stop the scanner. The logic to show/hide sections is now in stopScanner()
+                stopScanner();
+
+                // For Healthing Key, auto-submit after a slight delay
+                if (scanTarget === 'healthKey') {
+                    setTimeout(() => {
+                        submitBtn.click();
+                    }, 200);
                 }
             };
 
@@ -348,6 +350,7 @@
     </script>
 </body>
 </html>
+
 
 
 
