@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HealthingSubs</title>
-    <!-- PWA Service Worker -->
+    <!-- 
+        NOTE: PWA features (like offline access) are not fully functional
+        in this single-file environment, as they require separate files
+        (service-worker.js and manifest.json) that cannot be included here.
+    -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -18,27 +22,29 @@
         }
     </script>
     <link rel="manifest" href="/manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #1f2937; /* Dark slate-blue background */
+            font-family: 'Lato', sans-serif;
+            background-color: #252525;
         }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
-    <div class="bg-blue-900 bg-opacity-80 p-6 sm:p-8 rounded-lg shadow-2xl w-full max-w-lg">
-        <h1 class="text-3xl font-bold mb-4 text-white text-center">HealthingSubs Entry</h1>
-        <p class="text-blue-100 mb-6 text-center text-sm">To submit, enter both your Private ID and a Healthing Key. To check your submission history, only a Private ID is required.</p>
+    <div class="bg-gray-800 p-6 sm:p-8 rounded-lg shadow-2xl w-full max-w-lg">
+        <h1 class="text-2xl font-bold mb-4 text-white">My Healthing<span class="text-cyan-500">Club</span>Subs</h1>
+        <p class="text-gray-400 mb-6 text-sm">Submit with Private ID + Healthing Key. Check history with Private ID.</p>
 
         <!-- Input Form -->
         <div id="inputForm" class="space-y-4">
             <div>
-                <label for="privateIdInput" class="block text-sm font-medium text-blue-100 mb-1">Private ID</label>
                 <div class="flex items-center space-x-2">
-                    <input type="text" id="privateIdInput" placeholder="Enter or scan ID"
-                           class="flex-grow px-4 py-3 text-blue-100 bg-blue-800 border border-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
-                    <button id="scanPrivateIdBtn" class="px-3 py-3 bg-blue-800 text-blue-100 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                    <input type="text" id="privateIdInput" placeholder="Enter or scan Private ID"
+                           class="flex-grow h-12 px-4 py-3 text-white bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
+                    <button id="scanPrivateIdBtn" class="h-12 w-12 flex items-center justify-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
                             <path d="M3.75 3.75H7.5v-1.5H3.75a1.5 1.5 0 0 0-1.5 1.5v3.75h1.5v-3.75ZM20.25 2.25h-3.75v1.5h3.75a1.5 1.5 0 0 1 1.5 1.5v3.75h-1.5v-3.75ZM2.25 20.25v-3.75h1.5v3.75a1.5 1.5 0 0 0 1.5 1.5h3.75v-1.5H3.75a1.5 1.5 0 0 1-1.5-1.5ZM16.5 21.75h3.75a1.5 1.5 0 0 0 1.5-1.5v-3.75h-1.5v3.75h-3.75v1.5Z" />
                         </svg>
@@ -46,11 +52,10 @@
                 </div>
             </div>
             <div>
-                <label for="keyInput" class="block text-sm font-medium text-blue-100 mb-1">Healthing Key</label>
                 <div class="flex items-center space-x-2">
-                    <input type="text" id="keyInput" placeholder="Enter or scan key"
-                           class="flex-grow px-4 py-3 text-blue-100 bg-blue-800 border border-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
-                    <button id="scanKeyBtn" class="px-3 py-3 bg-blue-800 text-blue-100 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                    <input type="text" id="keyInput" placeholder="Enter or scan Healthing Key"
+                           class="flex-grow h-12 px-4 py-3 text-white bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
+                    <button id="scanKeyBtn" class="h-12 w-12 flex items-center justify-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
                             <path fill-rule="evenodd" d="M11.5 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM15.25 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM.75 12a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5H1.5a.75.75 0 0 1-.75-.75ZM22.5 12a.75.75 0 0 1-.75.75h-2.25a.75.75 0 0 1 0-1.5h2.25a.75.75 0 0 1 .75.75ZM18.75 15a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0v-2.25a.75.75 0 0 0-.75-.75ZM18.75 6.75a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0V7.5a.75.75 0 0 0-.75-.75ZM5.25 15a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0v-2.25a.75.75 0 0 0-.75-.75ZM5.25 6.75a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0V7.5a.75.75 0 0 0-.75-.75ZM6 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM10.5 7.5a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75ZM10.5 16.5a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
                         </svg>
@@ -62,22 +67,30 @@
                 <button id="submitBtn" class="w-full px-4 py-3 bg-cyan-500 text-gray-900 font-bold rounded-lg shadow-md hover:bg-cyan-600 transition duration-300 transform hover:scale-105">
                     Submit Key
                 </button>
-                <button id="checkHistoryBtn" class="w-full px-4 py-3 bg-gray-600 text-white font-bold rounded-lg shadow-md hover:bg-gray-700 transition duration-300 transform hover:scale-105">
+                <button id="checkHistoryBtn" class="w-full px-4 py-3 bg-gray-700 text-white font-bold rounded-lg shadow-md hover:bg-gray-800 transition duration-300 transform hover:scale-105">
                     Check History
                 </button>
             </div>
         </div>
         
         <!-- About Section -->
-        <div class="mt-8 text-center text-sm text-gray-400">
-            <p class="mb-2">This application is a secure tool for managing and verifying Healthing Keys and Private IDs. For support, please reach out via our official WhatsApp channel or the contact details below.</p>
-            <a href="https://chat.whatsapp.com/ExampleChannelLink" target="_blank" class="text-cyan-400 hover:text-cyan-500 transition-colors duration-300 underline">Join our WhatsApp Channel</a>
-            <p class="mt-2">Contact: support@healthingsubs.com | +1 (123) 456-7890</p>
+        <div class="mt-8 text-sm text-white">
+            <p class="mb-2">
+                <span class="font-bold">HealthingClub, part of the Open Access Health Society, offers free membership to all through verified eco-friendly habits.</span>
+            </p>
+            <p class="mb-2">
+                The HealthingClubSubs makes it easy to submit, store, and track your healthing proof.
+            </p>
+            <p class="text-center">
+                <a href="https://chat.whatsapp.com/ExampleChannelLink" target="_blank" class="text-cyan-400 hover:text-cyan-500 transition-colors duration-300 underline">Join our WhatsApp Channel</a>
+                <span class="mx-2">|</span>
+                <span>support@healthingsubs.com | +1 (123) 456-7890</span>
+            </p>
         </div>
 
         <!-- QR Code Scanner Section -->
         <div id="scannerSection" class="hidden mt-8">
-            <h2 id="scanner-title" class="text-2xl font-bold mb-4 text-white text-center">Scan QR Code</h2>
+            <h2 id="scanner-title" class="text-2xl font-bold mb-4 text-white">Scan QR Code</h2>
             <div id="qr-reader" class="w-full p-2 border border-gray-600 rounded-lg"></div>
             <button id="cancelScanBtn" class="w-full mt-4 px-4 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
                 Cancel Scan
@@ -86,17 +99,17 @@
 
         <!-- Submission History Report -->
         <div id="historyReport" class="hidden mt-8">
-            <h2 class="text-2xl font-bold mb-4 text-white text-center">Submission History</h2>
+            <h2 class="text-2xl font-bold mb-4 text-white">Submission History</h2>
             <div id="historyList" class="space-y-4 overflow-y-auto max-h-64 p-2 border border-gray-600 rounded-lg">
                 <!-- History items will be dynamically added here -->
             </div>
-            <button id="backToFormBtn" class="w-full mt-4 px-4 py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
+            <button id="backToFormBtn" class="w-full mt-4 px-4 py-3 bg-gray-700 text-white font-bold rounded-lg hover:bg-gray-800 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
                 Back to Submission
             </button>
         </div>
 
         <!-- Message area -->
-        <div id="message" class="mt-6 p-4 rounded-lg text-sm text-center font-medium transition-all duration-300 ease-in-out"></div>
+        <div id="message" class="mt-6 p-4 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out"></div>
     </div>
 
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
@@ -258,17 +271,17 @@
 
                 historyList.innerHTML = ''; // Clear previous history
                 if (data.length === 0) {
-                    historyList.innerHTML = '<p class="text-gray-500 text-center">No submission history found for this ID.</p>';
+                    historyList.innerHTML = '<p class="text-gray-400 text-center">No submission history found for this ID.</p>';
                     return;
                 }
 
                 data.forEach(item => {
                     const submissionTime = new Date(item.timestamp).toLocaleString();
                     const historyItem = document.createElement('div');
-                    historyItem.classList.add('p-3', 'bg-blue-800', 'rounded-lg', 'border', 'border-blue-700', 'text-blue-200');
+                    historyItem.classList.add('p-3', 'bg-gray-700', 'rounded-lg', 'border', 'border-gray-600', 'text-gray-200');
                     historyItem.innerHTML = `
                         <p><strong>Key:</strong> ${item.healthing_key}</p>
-                        <p class="text-xs text-blue-400">Submitted: ${submissionTime}</p>
+                        <p class="text-xs text-gray-400">Submitted: ${submissionTime}</p>
                     `;
                     historyList.appendChild(historyItem);
                 });
@@ -365,6 +378,7 @@
     </script>
 </body>
 </html>
+
 
 
 
