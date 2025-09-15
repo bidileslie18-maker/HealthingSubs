@@ -25,25 +25,29 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: 'Lato', sans-serif;
-            background-color: #252525;
+            background-color: #1f2937; /* Dark slate */
+        }
+        .dancing-script {
+            font-family: 'Dancing Script', cursive;
         }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
-    <div class="bg-gray-800 p-6 sm:p-8 rounded-lg shadow-2xl w-full max-w-lg">
-        <h1 class="text-xl font-bold mb-4 text-white"><span class="text-cyan-500">My</span> Free <span class="text-cyan-500">Healthing</span>ClubSubs</h1>
-        <p class="text-gray-400 mb-6 text-sm">Log in Healthing Key or View records.</p>
+    <div class="bg-slate-800 p-6 sm:p-8 rounded-lg shadow-2xl w-full max-w-lg">
+        <h1 class="text-xl font-bold mb-4 text-white"><span class="dancing-script">My Free</span> <span class="text-cyan-400">HealthingClubSubs</span></h1>
+        <p class="text-slate-400 mb-6 text-sm">Log in Healthing Key or View records.</p>
 
         <!-- Input Form -->
         <div id="inputForm" class="space-y-4">
             <div class="relative">
                 <input type="text" id="privateIdInput" placeholder="Enter or scan Private ID"
-                       class="w-full h-12 pr-12 px-4 py-3 text-white bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
-                <button id="scanPrivateIdBtn" class="absolute inset-y-0 right-0 pr-3 flex items-center bg-gray-700 text-cyan-500 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-opacity-50">
+                       class="w-full h-12 pr-12 px-4 py-3 text-white bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
+                <button id="scanPrivateIdBtn" class="absolute inset-y-0 right-0 pr-3 flex items-center bg-slate-700 text-cyan-400 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-opacity-50">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
                         <path d="M3.75 3.75H7.5v-1.5H3.75a1.5 1.5 0 0 0-1.5 1.5v3.75h1.5v-3.75ZM20.25 2.25h-3.75v1.5h3.75a1.5 1.5 0 0 1 1.5 1.5v3.75h-1.5v-3.75ZM2.25 20.25v-3.75h1.5v3.75a1.5 1.5 0 0 0 1.5 1.5h3.75v-1.5H3.75a1.5 1.5 0 0 1-1.5-1.5ZM16.5 21.75h3.75a1.5 1.5 0 0 0 1.5-1.5v-3.75h-1.5v3.75h-3.75v1.5Z" />
                     </svg>
@@ -51,8 +55,8 @@
             </div>
             <div class="relative">
                 <input type="text" id="keyInput" placeholder="Enter or scan Healthing Key"
-                       class="w-full h-12 pr-12 px-4 py-3 text-white bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
-                <button id="scanKeyBtn" class="absolute inset-y-0 right-0 pr-3 flex items-center bg-gray-700 text-cyan-500 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-opacity-50">
+                       class="w-full h-12 pr-12 px-4 py-3 text-white bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
+                <button id="scanKeyBtn" class="absolute inset-y-0 right-0 pr-3 flex items-center bg-slate-700 text-cyan-400 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-opacity-50">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
                         <path fill-rule="evenodd" d="M11.5 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM15.25 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM.75 12a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5H1.5a.75.75 0 0 1-.75-.75ZM22.5 12a.75.75 0 0 1-.75.75h-2.25a.75.75 0 0 1 0-1.5h2.25a.75.75 0 0 1 .75.75ZM18.75 15a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0v-2.25a.75.75 0 0 0-.75-.75ZM18.75 6.75a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0V7.5a.75.75 0 0 0-.75-.75ZM5.25 15a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0v-2.25a.75.75 0 0 0-.75-.75ZM5.25 6.75a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0V7.5a.75.75 0 0 0-.75-.75ZM6 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM10.5 7.5a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75ZM10.5 16.5a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
                     </svg>
@@ -63,7 +67,7 @@
                 <button id="submitBtn" class="w-full px-4 py-3 bg-cyan-500 text-gray-900 font-bold rounded-lg shadow-md hover:bg-cyan-600 transition duration-300 transform hover:scale-105">
                     Send
                 </button>
-                <button id="checkHistoryBtn" class="w-full px-4 py-3 bg-gray-700 text-white font-bold rounded-lg shadow-md hover:bg-gray-800 transition duration-300 transform hover:scale-105">
+                <button id="checkHistoryBtn" class="w-full px-4 py-3 bg-slate-700 text-white font-bold rounded-lg shadow-md hover:bg-slate-600 transition duration-300 transform hover:scale-105">
                     View Records
                 </button>
             </div>
@@ -71,16 +75,15 @@
         
         <!-- About Section -->
         <div class="mt-8 text-sm text-white">
-            <p class="text-center">
-                More information? <br/>
-                <a href="https://chat.whatsapp.com/ExampleChannelLink" target="_blank" class="text-cyan-400 hover:text-cyan-500 transition-colors duration-300 underline">Join our WhatsApp Channel</a>
+            <p>
+                More information? <a href="https://chat.whatsapp.com/ExampleChannelLink" target="_blank" class="text-cyan-400 hover:text-cyan-500 transition-colors duration-300 underline">Join our WhatsApp Channel</a>
             </p>
         </div>
 
         <!-- QR Code Scanner Section -->
         <div id="scannerSection" class="hidden mt-8">
             <h2 id="scanner-title" class="text-2xl font-bold mb-4 text-white">Scan QR Code</h2>
-            <div id="qr-reader" class="w-full p-2 border border-gray-600 rounded-lg"></div>
+            <div id="qr-reader" class="w-full p-2 border border-slate-600 rounded-lg"></div>
             <button id="cancelScanBtn" class="w-full mt-4 px-4 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
                 Cancel Scan
             </button>
@@ -89,10 +92,10 @@
         <!-- Submission History Report -->
         <div id="historyReport" class="hidden mt-8">
             <h2 class="text-2xl font-bold mb-4 text-white">Submission History</h2>
-            <div id="historyList" class="space-y-4 overflow-y-auto max-h-64 p-2 border border-gray-600 rounded-lg">
+            <div id="historyList" class="space-y-4 overflow-y-auto max-h-64 p-2 border border-slate-600 rounded-lg">
                 <!-- History items will be dynamically added here -->
             </div>
-            <button id="backToFormBtn" class="w-full mt-4 px-4 py-3 bg-gray-700 text-white font-bold rounded-lg hover:bg-gray-800 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
+            <button id="backToFormBtn" class="w-full mt-4 px-4 py-3 bg-slate-700 text-white font-bold rounded-lg hover:bg-slate-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-opacity-50">
                 Back to Submission
             </button>
         </div>
@@ -260,17 +263,17 @@
 
                 historyList.innerHTML = ''; // Clear previous history
                 if (data.length === 0) {
-                    historyList.innerHTML = '<p class="text-gray-400 text-center">No submission history found for this ID.</p>';
+                    historyList.innerHTML = '<p class="text-slate-400 text-center">No submission history found for this ID.</p>';
                     return;
                 }
 
                 data.forEach(item => {
                     const submissionTime = new Date(item.timestamp).toLocaleString();
                     const historyItem = document.createElement('div');
-                    historyItem.classList.add('p-3', 'bg-gray-700', 'rounded-lg', 'border', 'border-gray-600', 'text-gray-200');
+                    historyItem.classList.add('p-3', 'bg-slate-700', 'rounded-lg', 'border', 'border-slate-600', 'text-white');
                     historyItem.innerHTML = `
                         <p><strong>Key:</strong> ${item.healthing_key}</p>
-                        <p class="text-xs text-gray-400">Submitted: ${submissionTime}</p>
+                        <p class="text-xs text-slate-400">Submitted: ${submissionTime}</p>
                     `;
                     historyList.appendChild(historyItem);
                 });
@@ -367,6 +370,7 @@
     </script>
 </body>
 </html>
+
 
 
 
