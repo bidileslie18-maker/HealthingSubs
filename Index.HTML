@@ -35,32 +35,28 @@
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
     <div class="bg-gray-800 p-6 sm:p-8 rounded-lg shadow-2xl w-full max-w-lg">
-        <h1 class="text-2xl font-bold mb-4 text-white">My <span class="text-cyan-500">Healthing</span>ClubSubs</h1>
+        <h1 class="text-xl font-bold mb-4 text-white"><span class="text-cyan-500">My</span> Free <span class="text-cyan-500">Healthing</span>ClubSubs</h1>
         <p class="text-gray-400 mb-6 text-sm">Log in Healthing Key or View records.</p>
 
         <!-- Input Form -->
         <div id="inputForm" class="space-y-4">
-            <div>
-                <div class="flex items-center space-x-2">
-                    <input type="text" id="privateIdInput" placeholder="Enter or scan Private ID"
-                           class="flex-grow h-12 px-4 py-3 text-white bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
-                    <button id="scanPrivateIdBtn" class="h-12 w-12 flex items-center justify-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
-                            <path d="M3.75 3.75H7.5v-1.5H3.75a1.5 1.5 0 0 0-1.5 1.5v3.75h1.5v-3.75ZM20.25 2.25h-3.75v1.5h3.75a1.5 1.5 0 0 1 1.5 1.5v3.75h-1.5v-3.75ZM2.25 20.25v-3.75h1.5v3.75a1.5 1.5 0 0 0 1.5 1.5h3.75v-1.5H3.75a1.5 1.5 0 0 1-1.5-1.5ZM16.5 21.75h3.75a1.5 1.5 0 0 0 1.5-1.5v-3.75h-1.5v3.75h-3.75v1.5Z" />
-                        </svg>
-                    </button>
-                </div>
+            <div class="relative">
+                <input type="text" id="privateIdInput" placeholder="Enter or scan Private ID"
+                       class="w-full h-12 pr-12 px-4 py-3 text-white bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
+                <button id="scanPrivateIdBtn" class="absolute inset-y-0 right-0 pr-3 flex items-center bg-gray-700 text-cyan-500 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-opacity-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                        <path d="M3.75 3.75H7.5v-1.5H3.75a1.5 1.5 0 0 0-1.5 1.5v3.75h1.5v-3.75ZM20.25 2.25h-3.75v1.5h3.75a1.5 1.5 0 0 1 1.5 1.5v3.75h-1.5v-3.75ZM2.25 20.25v-3.75h1.5v3.75a1.5 1.5 0 0 0 1.5 1.5h3.75v-1.5H3.75a1.5 1.5 0 0 1-1.5-1.5ZM16.5 21.75h3.75a1.5 1.5 0 0 0 1.5-1.5v-3.75h-1.5v3.75h-3.75v1.5Z" />
+                    </svg>
+                </button>
             </div>
-            <div>
-                <div class="flex items-center space-x-2">
-                    <input type="text" id="keyInput" placeholder="Enter or scan Healthing Key"
-                           class="flex-grow h-12 px-4 py-3 text-white bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
-                    <button id="scanKeyBtn" class="h-12 w-12 flex items-center justify-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
-                            <path fill-rule="evenodd" d="M11.5 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM15.25 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM.75 12a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5H1.5a.75.75 0 0 1-.75-.75ZM22.5 12a.75.75 0 0 1-.75.75h-2.25a.75.75 0 0 1 0-1.5h2.25a.75.75 0 0 1 .75.75ZM18.75 15a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0v-2.25a.75.75 0 0 0-.75-.75ZM18.75 6.75a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0V7.5a.75.75 0 0 0-.75-.75ZM5.25 15a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0v-2.25a.75.75 0 0 0-.75-.75ZM5.25 6.75a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0V7.5a.75.75 0 0 0-.75-.75ZM6 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM10.5 7.5a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75ZM10.5 16.5a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                </div>
+            <div class="relative">
+                <input type="text" id="keyInput" placeholder="Enter or scan Healthing Key"
+                       class="w-full h-12 pr-12 px-4 py-3 text-white bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
+                <button id="scanKeyBtn" class="absolute inset-y-0 right-0 pr-3 flex items-center bg-gray-700 text-cyan-500 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-opacity-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                        <path fill-rule="evenodd" d="M11.5 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM15.25 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM.75 12a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5H1.5a.75.75 0 0 1-.75-.75ZM22.5 12a.75.75 0 0 1-.75.75h-2.25a.75.75 0 0 1 0-1.5h2.25a.75.75 0 0 1 .75.75ZM18.75 15a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0v-2.25a.75.75 0 0 0-.75-.75ZM18.75 6.75a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0V7.5a.75.75 0 0 0-.75-.75ZM5.25 15a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0v-2.25a.75.75 0 0 0-.75-.75ZM5.25 6.75a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0V7.5a.75.75 0 0 0-.75-.75ZM6 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM10.5 7.5a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75ZM10.5 16.5a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                    </svg>
+                </button>
             </div>
 
             <div class="flex flex-col space-y-3">
@@ -76,10 +72,8 @@
         <!-- About Section -->
         <div class="mt-8 text-sm text-white">
             <p class="text-center">
-                More information?
+                More information? <br/>
                 <a href="https://chat.whatsapp.com/ExampleChannelLink" target="_blank" class="text-cyan-400 hover:text-cyan-500 transition-colors duration-300 underline">Join our WhatsApp Channel</a>
-                <span class="mx-2">|</span>
-                <span>+1 (123) 456-7890</span>
             </p>
         </div>
 
@@ -373,7 +367,6 @@
     </script>
 </body>
 </html>
-
 
 
 
