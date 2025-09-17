@@ -1,158 +1,174 @@
-// service-worker.js
+// This is the service worker file that provides offline functionality and background sync.
 
-// Import the Supabase client library.
-importScripts('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+// Define a cache name for your app's assets. Update this version number when you make changes to files.
+const CACHE_NAME = 'healthing-app-cache-v3';
 
-const SUPABASE_URL = 'https://wprgkybgolraukwjexth.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwcmdreWJnb2xyYXVrd2pleHRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA5MzAsImV4cCI6MjA3MzIzNjkzMH0.5j9oUoRJNac37pU7MIspfK6Ei4Vol4NnMMCty1adGDA';
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-const CACHE_NAME = 'healthing-app-cache-v2'; // Increment the cache version
+// List all the files to be cached. These are the "app shell" files.
 const urlsToCache = [
   '/',
   '/index.html',
   '/offline-db.js',
   '/manifest.json',
-  'https://cdn.tailwindcss.com',
-  'https://unpkg.com/html5-qrcode',
-  'https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap',
-  'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap',
-  'https://fonts.gstatic.com'
+  // You should add the paths to your CSS, image, and other essential files here
+  // e.g., '/styles/main.css', '/images/logo.png', etc.
 ];
 
-const DB_NAME = 'HealthingAppDB';
-const STORE_NAME = 'submissions';
+// Supabase configuration - these are needed for the sync process
+const SUPABASE_URL = 'https://<your-supabase-url>.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const TABLE_NAME = 'submission_history';
+const KEYS_TABLE = 'healthing_keys';
 
-// 1. Installation: Cache the necessary assets
+// Import the Supabase client library directly into the service worker
+importScripts('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');
+
+// --- Service Worker Lifecycle Events ---
+
+// 1. Install Event: Caches the app shell files.
 self.addEventListener('install', (event) => {
+  console.log('Service Worker: Installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache');
+        console.log('Service Worker: Caching app shell');
         return cache.addAll(urlsToCache);
       })
+      .catch((err) => console.error('Service Worker: Cache installation failed', err))
   );
 });
 
-// 2. Activation: Clean up old caches
+// 2. Activate Event: Cleans up old caches.
 self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
+  console.log('Service Worker: Activating...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Service Worker: Deleting old cache', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     })
   );
+  // Takes control of the clients immediately, so the page doesn't have to be reloaded.
+  self.clients.claim();
 });
 
-// 3. Fetching: Implement a "Cache-First, with Network Fallback" strategy
+// 3. Fetch Event: Intercepts network requests and serves cached content.
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      // Return cached response if it exists
-      if (response) {
-        return response;
-      }
-      // If no cache match, fetch from the network
-      return fetch(event.request);
-    }).catch(() => {
-      // If network request also fails (e.g., offline), handle the error
-      // You can return a custom offline page or a simple response.
-      return new Response("You are offline. Please connect to the internet to access this page.", {
-        status: 503,
-        statusText: "Service Unavailable",
-        headers: new Headers({ "Content-Type": "text/html" })
-      });
-    })
+    caches.match(event.request)
+      .then((cachedResponse) => {
+        // Return the cached response if it exists.
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        // Otherwise, fetch from the network.
+        return fetch(event.request).catch(() => {
+          // If the network request fails and it's a navigation request, serve the offline page.
+          if (event.request.mode === 'navigate') {
+            return caches.match('/index.html');
+          }
+        });
+      })
   );
 });
 
-// 4. Synchronization: Handle background data uploads when online
+// --- Background Sync for Offline Submissions ---
+
+// Listen for the sync event from the app
 self.addEventListener('sync', (event) => {
-    if (event.tag === 'sync-submissions') {
-        event.waitUntil(syncSubmissions());
-    }
+  console.log('Service Worker: Sync event triggered!', event.tag);
+  if (event.tag === 'sync-submissions') {
+    event.waitUntil(syncOfflineSubmissions());
+  }
 });
 
-async function syncSubmissions() {
-    console.log('Attempting to sync offline submissions...');
-    try {
-        const db = await new Promise((resolve, reject) => {
-            const request = indexedDB.open(DB_NAME);
-            request.onsuccess = (e) => resolve(e.target.result);
-            request.onerror = (e) => reject(e.target.error);
-        });
+/**
+ * Handles the synchronization of offline submissions with the Supabase database.
+ * This function is triggered by the 'sync-submissions' event.
+ */
+async function syncOfflineSubmissions() {
+  console.log('Syncing offline submissions...');
+  // The global self object is the service worker. 'self.indexedDB'
+  const db = self.indexedDB.open('submissions-db', 1);
 
-        const transaction = db.transaction([STORE_NAME], 'readwrite');
-        const store = transaction.objectStore(STORE_NAME);
-        const submissions = await new Promise((resolve, reject) => {
-            const request = store.getAll();
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject('Failed to get offline submissions');
-        });
+  db.onsuccess = async (event) => {
+    const database = event.target.result;
+    const transaction = database.transaction('submissions', 'readwrite');
+    const store = transaction.objectStore('submissions');
+    const submissions = store.getAll();
 
-        if (submissions.length === 0) {
-            console.log('No offline submissions to sync.');
-            return;
+    submissions.onsuccess = async () => {
+      const offlineSubmissions = submissions.result;
+      if (offlineSubmissions.length === 0) {
+        console.log('No offline submissions to sync.');
+        return;
+      }
+
+      const supabase = self.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      for (const submission of offlineSubmissions) {
+        try {
+          console.log('Processing submission:', submission.privateID);
+
+          // Check if the Healthing Key is valid and not used
+          const { data: keyData, error: keyError } = await supabase
+            .from(KEYS_TABLE)
+            .select('is_used')
+            .eq('healthing_key', submission.healthingKey)
+            .single();
+
+          if (keyError || !keyData || keyData.is_used) {
+            console.log('Invalid or used Healthing Key. Deleting offline record.');
+            // Delete the submission from IndexedDB
+            const delTransaction = database.transaction('submissions', 'readwrite');
+            const delStore = delTransaction.objectStore('submissions');
+            delStore.delete(submission.id);
+            continue; // Skip to the next submission
+          }
+
+          // Insert the submission into the main table
+          const { error: insertError } = await supabase
+            .from(TABLE_NAME)
+            .insert({
+              private_id: submission.privateID,
+              timestamp: submission.timestamp,
+              submission_data: submission.submissionData,
+            });
+
+          if (insertError) {
+            console.error('Failed to insert submission online:', insertError);
+            continue; // Skip to the next submission
+          }
+
+          // Mark the Healthing Key as used
+          const { error: updateError } = await supabase
+            .from(KEYS_TABLE)
+            .update({ is_used: true })
+            .eq('healthing_key', submission.healthingKey);
+
+          if (updateError) {
+            console.error('Failed to update Healthing Key:', updateError);
+            continue;
+          }
+
+          // If all operations are successful, delete the record from IndexedDB
+          const delTransaction = database.transaction('submissions', 'readwrite');
+          const delStore = delTransaction.objectStore('submissions');
+          delStore.delete(submission.id);
+          console.log('Submission synced successfully and deleted from local DB.');
+
+        } catch (err) {
+          console.error('An error occurred during sync:', err);
         }
+      }
+    };
+  };
 
-        for (const submission of submissions) {
-            try {
-                const { data: keyData, error: keyError } = await supabase
-                    .from('healthing_keys')
-                    .select('is_used')
-                    .eq('key', submission.healthing_key)
-                    .single();
-
-                if (keyData?.is_used) {
-                    await new Promise((resolve, reject) => {
-                        const deleteReq = store.delete(submission.id);
-                        deleteReq.onsuccess = () => resolve();
-                        deleteReq.onerror = () => reject('Failed to delete duplicate key from IndexedDB');
-                    });
-                    console.log(`Duplicate key "${submission.healthing_key}" rejected and removed.`);
-                    continue;
-                }
-
-                const { error: submissionError } = await supabase
-                    .from('submission_history')
-                    .insert({
-                        private_id: submission.private_id,
-                        healthing_key: submission.healthing_key,
-                        timestamp: submission.timestamp
-                    });
-
-                if (submissionError) {
-                    throw new Error(`Supabase submission error for key ${submission.healthing_key}: ${submissionError.message}`);
-                }
-
-                const { error: updateError } = await supabase
-                    .from('healthing_keys')
-                    .update({ is_used: true })
-                    .eq('key', submission.healthing_key);
-
-                if (updateError) {
-                    throw new Error(`Supabase update error for key ${submission.healthing_key}: ${updateError.message}`);
-                }
-
-                await new Promise((resolve, reject) => {
-                    const deleteReq = store.delete(submission.id);
-                    deleteReq.onsuccess = () => resolve();
-                    deleteReq.onerror = () => reject('Failed to delete from IndexedDB after successful sync');
-                });
-                console.log(`Successfully synced and removed submission for key: ${submission.healthing_key}`);
-            } catch (error) {
-                console.error(`Sync error for key ${submission.healthing_key}:`, error);
-            }
-        }
-        console.log('All available offline submissions have been processed.');
-    } catch (error) {
-        console.error('Failed to sync submissions:', error);
-    }
+  db.onerror = (event) => {
+    console.error('IndexedDB error:', event.target.error);
+  };
 }
-
