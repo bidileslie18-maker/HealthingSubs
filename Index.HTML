@@ -88,6 +88,7 @@
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        import { saveOfflineSubmission, getOfflineSubmissions, deleteOfflineSubmission } from './offline-db.js';
 
         // NOTE: For a real-world application, these keys should be handled securely,
         // e.g., using environment variables on a server.
@@ -131,13 +132,17 @@
             }
         };
 
-        // Function to check if Private ID is valid
+        // Function to check if Private ID is valid (now only runs when online)
         const isPrivateIdValid = async (privateId) => {
             if (!privateId) {
                 displayMessage("Private ID cannot be empty.", 'error');
                 return false;
             }
-            // Supabase query to check for Private ID validity
+            if (!navigator.onLine) {
+                // If offline, assume the ID is valid to allow submission
+                // You could implement a local cache of valid IDs for better UX
+                return true;
+            }
             const { data: idData, error: idError } = await supabase
                 .from('valid_private_ids')
                 .select('id')
@@ -160,68 +165,81 @@
                 displayMessage("Healthing Key cannot be empty.", 'error');
                 return;
             }
-            if (!(await isPrivateIdValid(privateId))) {
-                return;
-            }
-
-            try {
-                // Step 1: Check if the Healthing Key exists and is unused
-                const { data: keyData, error: keyError } = await supabase
-                    .from('healthing_keys')
-                    .select('is_used')
-                    .eq('key', key)
-                    .single();
-
-                if (keyError || !keyData) {
-                    displayMessage("Invalid Healthing Key.", 'error');
+            if (!navigator.onLine) {
+                // Offline: Save to IndexedDB
+                try {
+                    if (!privateId) {
+                        displayMessage("Private ID cannot be empty.", 'error');
+                        return;
+                    }
+                    await saveOfflineSubmission(privateId, key);
+                    displayMessage('Submission saved offline. It will be uploaded when you reconnect.', 'info');
+                    keyInput.value = '';
+                    if ('serviceWorker' in navigator && 'SyncManager' in window) {
+                        const registration = await navigator.serviceWorker.ready;
+                        await registration.sync.register('sync-submissions');
+                        console.log('Background sync registered.');
+                    }
+                } catch (error) {
+                    displayMessage(`Failed to save submission offline. An error occurred: ${error.message}`, 'error');
+                }
+            } else {
+                // Online: Proceed with Supabase submission
+                if (!(await isPrivateIdValid(privateId))) {
                     return;
                 }
+                try {
+                    const { data: keyData, error: keyError } = await supabase
+                        .from('healthing_keys')
+                        .select('is_used')
+                        .eq('key', key)
+                        .single();
 
-                if (keyData.is_used) {
-                    displayMessage("This Healthing Key has already been used.", 'error');
-                    return;
+                    if (keyError || !keyData) {
+                        displayMessage("Invalid Healthing Key.", 'error');
+                        return;
+                    }
+
+                    if (keyData.is_used) {
+                        displayMessage("This Healthing Key has already been used.", 'error');
+                        return;
+                    }
+
+                    const { error: submissionError } = await supabase
+                        .from('submission_history')
+                        .insert({
+                            private_id: privateId,
+                            healthing_key: key,
+                            timestamp: new Date().toISOString()
+                        });
+
+                    if (submissionError) {
+                        throw submissionError;
+                    }
+
+                    const { error: updateError } = await supabase
+                        .from('healthing_keys')
+                        .update({ is_used: true })
+                        .eq('key', key);
+
+                    if (updateError) {
+                        throw updateError;
+                    }
+
+                    displayMessage(`Submission successful! Healthing Key is now used.`, 'success');
+                    keyInput.value = '';
+                } catch (error) {
+                    console.error('Submission error:', error.message);
+                    displayMessage(`An error occurred: ${error.message}`, 'error');
                 }
-
-                // Step 2: If Key is valid and unused, log the submission
-                const { error: submissionError } = await supabase
-                    .from('submission_history')
-                    .insert({
-                        private_id: privateId,
-                        healthing_key: key,
-                        timestamp: new Date().toISOString()
-                    });
-
-                if (submissionError) {
-                    throw submissionError;
-                }
-
-                // Step 3: Mark the Healthing Key as used
-                const { error: updateError } = await supabase
-                    .from('healthing_keys')
-                    .update({ is_used: true })
-                    .eq('key', key);
-
-                if (updateError) {
-                    throw updateError;
-                }
-
-                displayMessage(`Submission successful! Healthing Key is now used.`, 'success');
-                keyInput.value = ''; // Clear the Key input
-
-            } catch (error) {
-                console.error('Submission error:', error.message);
-                displayMessage(`An error occurred: ${error.message}`, 'error');
             }
         });
 
         // Function to stop the scanner and hide the UI, handling different states
         const stopScanner = () => {
-            // First, immediately hide the scanner UI and show the form
             scannerSection.classList.add('hidden');
             inputForm.classList.remove('hidden');
-            displayMessage('', 'none'); // Clear message
-
-            // Attempt to stop the camera stream only if the scanner is running
+            displayMessage('', 'none');
             if (html5Qrcode && html5Qrcode.getState() !== 0) {
                 html5Qrcode.stop().catch(err => {
                     console.warn("Html5Qrcode.stop() failed, but UI is updated:", err);
@@ -241,19 +259,14 @@
             html5Qrcode = new Html5Qrcode("qr-reader");
 
             const onScanSuccess = (decodedText) => {
-                // Fill the input field with the scanned text
                 if (scanTarget === 'privateId') {
                     privateIdInput.value = decodedText;
                     displayMessage('PI code scanned successfully.', 'success');
-                } else { // scanTarget === 'healthKey'
+                } else {
                     keyInput.value = decodedText;
                     displayMessage('HK code scanned. Submitting...', 'info');
                 }
-                
-                // Stop the scanner. The logic to show/hide sections is now in stopScanner()
                 stopScanner();
-
-                // For Healthing Key, auto-submit after a slight delay
                 if (scanTarget === 'healthKey') {
                     setTimeout(() => {
                         submitBtn.click();
@@ -262,10 +275,9 @@
             };
 
             const onScanError = (errorMessage) => {
-                // Suppress constant error logging for a smoother experience
+                // Suppress constant error logging
             };
 
-            // Force rear camera by specifying "environment" facing mode
             html5Qrcode.start(
                 { facingMode: 'environment' },
                 { fps: 10, qrbox: { width: 250, height: 250 } },
@@ -293,6 +305,7 @@
     </script>
 </body>
 </html>
+
 
 
 
