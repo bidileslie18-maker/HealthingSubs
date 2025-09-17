@@ -131,24 +131,26 @@
             }
         };
 
-        // Function to check if Private ID is valid
+        // Function to check if Private ID is valid (UPDATED to use RPC)
         const isPrivateIdValid = async (privateId) => {
             if (!privateId) {
                 displayMessage("Private ID cannot be empty.", 'error');
                 return false;
             }
-            // Supabase query to check for Private ID validity
-            const { data: idData, error: idError } = await supabase
-                .from('valid_private_ids')
-                .select('id')
-                .eq('id', privateId)
-                .single();
+            const { data: idExists, error: idError } = await supabase
+                .rpc('check_private_id_exists', { private_id_input: privateId });
 
-            if (idError || !idData) {
+            if (idError) {
+                console.error("RPC error:", idError.message);
+                displayMessage("An error occurred during ID validation.", 'error');
+                return false;
+            }
+            if (idExists === true) {
+                return true;
+            } else {
                 displayMessage("Invalid Private ID.", 'error');
                 return false;
             }
-            return true;
         };
 
         // Event listener for the main "Submit Key" button
@@ -166,10 +168,11 @@
 
             try {
                 // Step 1: Check if the Healthing Key exists and is unused
+                // NOTE: This query requires a secure RLS policy on the healthing_keys table.
                 const { data: keyData, error: keyError } = await supabase
                     .from('healthing_keys')
                     .select('is_used')
-                    .eq('key', key)
+                    .eq('healthing_key', key)
                     .single();
 
                 if (keyError || !keyData) {
@@ -187,8 +190,8 @@
                     .from('submission_history')
                     .insert({
                         private_id: privateId,
-                        healthing_key: key,
-                        timestamp: new Date().toISOString()
+                        healthing_key: key
+                        // The 'created_at' column is automatically filled by Supabase, so you don't need to add it here.
                     });
 
                 if (submissionError) {
@@ -196,10 +199,11 @@
                 }
 
                 // Step 3: Mark the Healthing Key as used
+                // NOTE: This update requires a secure RLS policy on the healthing_keys table.
                 const { error: updateError } = await supabase
                     .from('healthing_keys')
                     .update({ is_used: true })
-                    .eq('key', key);
+                    .eq('healthing_key', key);
 
                 if (updateError) {
                     throw updateError;
@@ -293,6 +297,7 @@
     </script>
 </body>
 </html>
+
 
 
 
