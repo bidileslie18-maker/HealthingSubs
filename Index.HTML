@@ -213,39 +213,28 @@
 
             displayMessage(`Syncing ${offlineSubmissions.length} offline submission(s)...`, 'info');
 
-            const failedSubmissions = [];
-            const successfulSubmissions = [];
+            const syncedSubmissions = [];
             for (const submission of offlineSubmissions) {
                 displayMessage(`Attempting to sync Private ID: ${submission.privateId}, Key: ${submission.key}...`, 'info');
                 const result = await processSupabaseSubmission(submission.privateId, submission.key);
                 
                 if (result.success) {
                     displayMessage(`Successfully synced submission for Private ID: ${submission.privateId}`, 'success');
-                    successfulSubmissions.push(submission);
+                    syncedSubmissions.push(submission);
                 } else {
                     displayMessage(`Failed to sync for Private ID: ${submission.privateId}. Reason: ${result.message}`, 'error');
-                    failedSubmissions.push(submission);
                 }
             }
-            
-            const newOfflineSubmissions = offlineSubmissions.filter(sub => {
-                const isFailed = failedSubmissions.some(
-                    failed => failed.privateId === sub.privateId && failed.key === sub.key
-                );
-                const isSuccessful = successfulSubmissions.some(
-                    successful => successful.privateId === sub.privateId && successful.key === sub.key
-                );
 
-                // Only keep submissions that have not been successfully synced
-                // The current logic doesn't re-try permanent failures, so we discard them.
-                return !(isFailed || isSuccessful);
-            });
-            
-            localStorage.setItem('offlineSubmissions', JSON.stringify(newOfflineSubmissions));
+            // Remove successfully synced submissions from local storage
+            const remainingSubmissions = offlineSubmissions.filter(
+                sub => !syncedSubmissions.some(synced => synced.privateId === sub.privateId && synced.key === sub.key)
+            );
+            localStorage.setItem('offlineSubmissions', JSON.stringify(remainingSubmissions));
             updateOfflineCount();
-            displayMessage('Sync complete. Submissions that failed validation have been removed.', 'success');
+            displayMessage('Sync complete.', 'success');
         };
-        
+
         // Check offline status on page load
         const updateOnlineStatus = () => {
             if (navigator.onLine) {
@@ -325,11 +314,11 @@
                 displayMessage("Healthing Key cannot be empty.", 'error');
                 return;
             }
-            // This is the key change to make the app offline-first
+            if (!(await isPrivateIdValid(privateId))) {
+                return;
+            }
+
             if (navigator.onLine) {
-                if (!(await isPrivateIdValid(privateId))) {
-                    return;
-                }
                 const result = await processSupabaseSubmission(privateId, key);
                 if (result.success) {
                     displayMessage(result.message, 'success');
@@ -469,14 +458,6 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
 
 
 
