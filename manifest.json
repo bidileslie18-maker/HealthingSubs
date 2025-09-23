@@ -1,5 +1,5 @@
 {
-  "name": "HealthingSubs",
+  "name": "Healthing Club Subs",
   "short_name": "HealthingSubs",
   "description": "A healthing key submission tracker app.",
   "start_url": "/index.html",
@@ -17,5 +17,6 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "orientation": "portrait"
 }
