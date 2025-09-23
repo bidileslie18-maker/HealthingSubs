@@ -314,11 +314,11 @@
                 displayMessage("Healthing Key cannot be empty.", 'error');
                 return;
             }
-            if (!(await isPrivateIdValid(privateId))) {
-                return;
-            }
-
+            // This is the key change to make the app offline-first
             if (navigator.onLine) {
+                if (!(await isPrivateIdValid(privateId))) {
+                    return;
+                }
                 const result = await processSupabaseSubmission(privateId, key);
                 if (result.success) {
                     displayMessage(result.message, 'success');
@@ -458,5 +458,7 @@
     </script>
 </body>
 </html>
+
+
 
 
