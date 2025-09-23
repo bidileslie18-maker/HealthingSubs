@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HealthingSubs</title>
+    <!--
+        NOTE: PWA features (like offline access) are not fully functional
+        in this single-file environment, as they require separate files
+        (service-worker.js and manifest.json) that cannot be included here.
+    -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -33,7 +38,8 @@
         <h1 class="text-2xl font-bold mb-4 text-white">My Healthing<span class="text-cyan-500">Club</span>Subs</h1>
         <p class="text-gray-400 mb-6 text-sm">Healthing Check-in</p>
 
-        <div id="inputForm" class="space-y-4">
+        <!-- Main Input Form (Supabase Submission) -->
+        <div id="mainForm" class="space-y-4">
             <div>
                 <div class="flex items-center space-x-2">
                     <input type="text" id="privateIdInput" placeholder="Enter or scan Private ID"
@@ -65,14 +71,13 @@
                     Check History
                 </button>
             </div>
-        </div>
-        
-        <div class="mt-8 text-sm text-white">
-            <p class="text-center">
-                <a href="https://chat.whatsapp.com/ExampleChannelLink" target="_blank" class="text-cyan-400 hover:text-cyan-500 transition-colors duration-300 underline">Join our WhatsApp Channel</a>
-            </p>
+            <div id="offlineStatus" class="mt-4 text-center text-sm font-medium text-red-400"></div>
+            <button id="syncBtn" class="mt-4 w-full px-4 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 transition duration-300 transform hover:scale-105 hidden">
+                Sync Offline Submissions (<span id="offlineCount">0</span>)
+            </button>
         </div>
 
+        <!-- QR Code Scanner Section -->
         <div id="scannerSection" class="hidden mt-8">
             <h2 id="scanner-title" class="text-2xl font-bold mb-4 text-white">Scan QR Code</h2>
             <div id="qr-reader" class="w-full p-2 border border-gray-600 rounded-lg"></div>
@@ -81,15 +86,18 @@
             </button>
         </div>
 
+        <!-- Submission History Report -->
         <div id="historyReport" class="hidden mt-8">
             <h2 class="text-2xl font-bold mb-4 text-white">Submission History</h2>
             <div id="historyList" class="space-y-4 overflow-y-auto max-h-64 p-2 border border-gray-600 rounded-lg">
-                </div>
+                <!-- History items will be dynamically added here -->
+            </div>
             <button id="backToFormBtn" class="w-full mt-4 px-4 py-3 bg-gray-700 text-white font-bold rounded-lg hover:bg-gray-800 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
                 Back to Submission
             </button>
         </div>
 
+        <!-- Message area -->
         <div id="message" class="mt-6 p-4 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out"></div>
     </div>
 
@@ -113,14 +121,137 @@
         const scanKeyBtn = document.getElementById('scanKeyBtn');
         const cancelScanBtn = document.getElementById('cancelScanBtn');
         const messageDiv = document.getElementById('message');
-        const inputForm = document.getElementById('inputForm');
+        const mainForm = document.getElementById('mainForm');
         const historyReport = document.getElementById('historyReport');
         const historyList = document.getElementById('historyList');
         const backToFormBtn = document.getElementById('backToFormBtn');
         const scannerSection = document.getElementById('scannerSection');
+        const offlineStatusDiv = document.getElementById('offlineStatus');
+        const syncBtn = document.getElementById('syncBtn');
+        const offlineCountSpan = document.getElementById('offlineCount');
+
 
         let html5Qrcode = null;
         let scanTarget = null; // 'privateId' or 'healthKey'
+        
+        // Function to handle the full Supabase submission process
+        const processSupabaseSubmission = async (privateId, key) => {
+            try {
+                // Step 1: Check if the Healthing Key exists and is unused
+                const { data: keyData, error: keyError } = await supabase
+                    .from('healthing_keys')
+                    .select('is_used')
+                    .eq('key', key)
+                    .single();
+
+                if (keyError || !keyData) {
+                    throw new Error("Invalid Healthing Key.");
+                }
+
+                if (keyData.is_used) {
+                    throw new Error("This Healthing Key has already been used.");
+                }
+
+                // Step 2: If Key is valid and unused, log the submission
+                const { error: submissionError } = await supabase
+                    .from('submission_history')
+                    .insert({
+                        private_id: privateId,
+                        healthing_key: key,
+                        timestamp: new Date().toISOString()
+                    });
+
+                if (submissionError) {
+                    throw submissionError;
+                }
+
+                // Step 3: Mark the Healthing Key as used
+                const { error: updateError } = await supabase
+                    .from('healthing_keys')
+                    .update({ is_used: true })
+                    .eq('key', key);
+
+                if (updateError) {
+                    throw updateError;
+                }
+
+                return { success: true, message: `Submission successful! Healthing Key is now used.` };
+
+            } catch (error) {
+                console.error('Submission error:', error.message);
+                return { success: false, message: `An error occurred: ${error.message}` };
+            }
+        };
+
+        // Function to store submissions locally when offline
+        const saveOfflineSubmission = (privateId, key) => {
+            let offlineSubmissions = JSON.parse(localStorage.getItem('offlineSubmissions')) || [];
+            offlineSubmissions.push({ privateId, key, timestamp: new Date().toISOString() });
+            localStorage.setItem('offlineSubmissions', JSON.stringify(offlineSubmissions));
+            displayMessage('Submission saved offline. It will sync when you are back online.', 'info');
+            updateOfflineCount();
+            keyInput.value = '';
+        };
+
+        // Function to update the offline submission count
+        const updateOfflineCount = () => {
+            const offlineSubmissions = JSON.parse(localStorage.getItem('offlineSubmissions')) || [];
+            if (offlineSubmissions.length > 0) {
+                syncBtn.classList.remove('hidden');
+                offlineCountSpan.textContent = offlineSubmissions.length;
+            } else {
+                syncBtn.classList.add('hidden');
+            }
+        };
+
+        // Function to sync offline submissions
+        const syncOfflineSubmissions = async () => {
+            if (!navigator.onLine) return; // Only sync when online
+
+            let offlineSubmissions = JSON.parse(localStorage.getItem('offlineSubmissions')) || [];
+            if (offlineSubmissions.length === 0) return;
+
+            displayMessage(`Syncing ${offlineSubmissions.length} offline submission(s)...`, 'info');
+
+            const syncedSubmissions = [];
+            for (const submission of offlineSubmissions) {
+                displayMessage(`Attempting to sync Private ID: ${submission.privateId}, Key: ${submission.key}...`, 'info');
+                const result = await processSupabaseSubmission(submission.privateId, submission.key);
+                
+                if (result.success) {
+                    displayMessage(`Successfully synced submission for Private ID: ${submission.privateId}`, 'success');
+                    syncedSubmissions.push(submission);
+                } else {
+                    displayMessage(`Failed to sync for Private ID: ${submission.privateId}. Reason: ${result.message}`, 'error');
+                }
+            }
+
+            // Remove successfully synced submissions from local storage
+            const remainingSubmissions = offlineSubmissions.filter(
+                sub => !syncedSubmissions.some(synced => synced.privateId === sub.privateId && synced.key === sub.key)
+            );
+            localStorage.setItem('offlineSubmissions', JSON.stringify(remainingSubmissions));
+            updateOfflineCount();
+            displayMessage('Sync complete.', 'success');
+        };
+
+        // Check offline status on page load
+        const updateOnlineStatus = () => {
+            if (navigator.onLine) {
+                offlineStatusDiv.classList.add('hidden');
+                syncOfflineSubmissions(); // Attempt to sync on reconnect
+            } else {
+                offlineStatusDiv.classList.remove('hidden');
+                offlineStatusDiv.textContent = 'You are currently offline. Submissions will be saved locally.';
+            }
+        };
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+
+        // Check for offline submissions on page load
+        updateOfflineCount();
 
         // Deep linking: Check for a privateId in the URL when the page loads
         const urlParams = new URLSearchParams(window.location.search);
@@ -168,7 +299,7 @@
             const privateId = privateIdInput.value.trim();
             if (await isPrivateIdValid(privateId)) {
                 await fetchAndDisplayHistory(privateId);
-                inputForm.classList.add('hidden');
+                mainForm.classList.add('hidden');
                 historyReport.classList.remove('hidden');
                 displayMessage('', 'none'); // Clear messages on form switch
             }
@@ -187,54 +318,22 @@
                 return;
             }
 
-            try {
-                // Step 1: Check if the Healthing Key exists and is unused
-                const { data: keyData, error: keyError } = await supabase
-                    .from('healthing_keys')
-                    .select('is_used')
-                    .eq('key', key)
-                    .single();
-
-                if (keyError || !keyData) {
-                    displayMessage("Invalid Healthing Key.", 'error');
-                    return;
+            if (navigator.onLine) {
+                const result = await processSupabaseSubmission(privateId, key);
+                if (result.success) {
+                    displayMessage(result.message, 'success');
+                    keyInput.value = '';
+                } else {
+                    displayMessage(result.message, 'error');
                 }
-
-                if (keyData.is_used) {
-                    displayMessage("This Healthing Key has already been used.", 'error');
-                    return;
-                }
-
-                // Step 2: If Key is valid and unused, log the submission
-                const { error: submissionError } = await supabase
-                    .from('submission_history')
-                    .insert({
-                        private_id: privateId,
-                        healthing_key: key,
-                        timestamp: new Date().toISOString()
-                    });
-
-                if (submissionError) {
-                    throw submissionError;
-                }
-
-                // Step 3: Mark the Healthing Key as used
-                const { error: updateError } = await supabase
-                    .from('healthing_keys')
-                    .update({ is_used: true })
-                    .eq('key', key);
-
-                if (updateError) {
-                    throw updateError;
-                }
-
-                displayMessage(`Submission successful! Healthing Key is now used.`, 'success');
-                keyInput.value = ''; // Clear the Key input
-
-            } catch (error) {
-                console.error('Submission error:', error.message);
-                displayMessage(`An error occurred: ${error.message}`, 'error');
+            } else {
+                saveOfflineSubmission(privateId, key);
             }
+        });
+
+        // Event listener for the manual sync button
+        syncBtn.addEventListener('click', () => {
+            syncOfflineSubmissions();
         });
 
         // Function to fetch and display submission history
@@ -276,7 +375,7 @@
         const stopScanner = () => {
             // First, immediately hide the scanner UI and show the form
             scannerSection.classList.add('hidden');
-            inputForm.classList.remove('hidden');
+            mainForm.classList.remove('hidden');
             displayMessage('', 'none'); // Clear message
 
             // Attempt to stop the camera stream only if the scanner is running
@@ -291,7 +390,7 @@
         // Event listener for the "Back to Form" button
         backToFormBtn.addEventListener('click', () => {
             historyReport.classList.add('hidden');
-            inputForm.classList.remove('hidden');
+            mainForm.classList.remove('hidden');
             displayMessage('', 'none');
             keyInput.value = '';
         });
@@ -299,7 +398,7 @@
         // Main QR Code Scanner Logic
         const startScanner = (target) => {
             scanTarget = target;
-            inputForm.classList.add('hidden');
+            mainForm.classList.add('hidden');
             scannerSection.classList.remove('hidden');
             document.getElementById('scanner-title').textContent = `Scan ${target === 'privateId' ? 'Private ID' : 'Healthing Key'}`;
             displayMessage('Initializing camera...', 'info');
@@ -359,6 +458,5 @@
     </script>
 </body>
 </html>
-
 
 
