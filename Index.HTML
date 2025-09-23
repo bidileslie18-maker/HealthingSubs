@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HealthingSubs</title>
+    <!--
+        NOTE: PWA features (like offline access) are not fully functional
+        in this single-file environment, as they require separate files
+        (service-worker.js and manifest.json) that cannot be included here.
+    -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -38,7 +43,7 @@
             <div>
                 <div class="flex items-center space-x-2">
                     <input type="text" id="privateIdInput" placeholder="Enter or scan Private ID"
-                             class="flex-grow h-12 px-4 py-3 text-white bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
+                            class="flex-grow h-12 px-4 py-3 text-white bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
                     <button id="scanPrivateIdBtn" class="h-12 w-12 flex items-center justify-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
                             <path d="M3.75 3.75H7.5v-1.5H3.75a1.5 1.5 0 0 0-1.5 1.5v3.75h1.5v-3.75ZM20.25 2.25h-3.75v1.5h3.75a1.5 1.5 0 0 1 1.5 1.5v3.75h-1.5v-3.75ZM2.25 20.25v-3.75h1.5v3.75a1.5 1.5 0 0 0 1.5 1.5h3.75v-1.5H3.75a1.5 1.5 0 0 1-1.5-1.5ZM16.5 21.75h3.75a1.5 1.5 0 0 0 1.5-1.5v-3.75h-1.5v3.75h-3.75v1.5Z" />
@@ -49,7 +54,7 @@
             <div>
                 <div class="flex items-center space-x-2">
                     <input type="text" id="keyInput" placeholder="Enter or scan Healthing Key"
-                             class="flex-grow h-12 px-4 py-3 text-white bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
+                            class="flex-grow h-12 px-4 py-3 text-white bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
                     <button id="scanKeyBtn" class="h-12 w-12 flex items-center justify-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
                             <path fill-rule="evenodd" d="M11.5 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM15.25 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM.75 12a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5H1.5a.75.75 0 0 1-.75-.75ZM22.5 12a.75.75 0 0 1-.75.75h-2.25a.75.75 0 0 1 0-1.5h2.25a.75.75 0 0 1 .75.75ZM18.75 15a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0v-2.25a.75.75 0 0 0-.75-.75ZM18.75 6.75a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0V7.5a.75.75 0 0 0-.75-.75ZM5.25 15a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0v-2.25a.75.75 0 0 0-.75-.75ZM5.25 6.75a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0V7.5a.75.75 0 0 0-.75-.75ZM6 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM10.5 7.5a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75ZM10.5 16.5a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
@@ -66,7 +71,6 @@
                     Check History
                 </button>
             </div>
-            
             <div id="offlineStatus" class="mt-4 text-center text-sm font-medium text-red-400"></div>
             <button id="syncBtn" class="mt-4 w-full px-4 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 transition duration-300 transform hover:scale-105 hidden">
                 Sync Offline Submissions (<span id="offlineCount">0</span>)
@@ -205,44 +209,43 @@
             if (!navigator.onLine) return; // Only sync when online
 
             let offlineSubmissions = JSON.parse(localStorage.getItem('offlineSubmissions')) || [];
-            if (offlineSubmissions.length === 0) {
-                displayMessage('Sync complete. All offline submissions have been synced.', 'success');
-                return;
-            }
+            if (offlineSubmissions.length === 0) return;
 
             displayMessage(`Syncing ${offlineSubmissions.length} offline submission(s)...`, 'info');
 
-            const processedSubmissions = [];
             const failedSubmissions = [];
+            const successfulSubmissions = [];
             for (const submission of offlineSubmissions) {
+                displayMessage(`Attempting to sync Private ID: ${submission.privateId}, Key: ${submission.key}...`, 'info');
                 const result = await processSupabaseSubmission(submission.privateId, submission.key);
                 
                 if (result.success) {
                     displayMessage(`Successfully synced submission for Private ID: ${submission.privateId}`, 'success');
-                    processedSubmissions.push(submission);
+                    successfulSubmissions.push(submission);
                 } else {
                     displayMessage(`Failed to sync for Private ID: ${submission.privateId}. Reason: ${result.message}`, 'error');
-                    // We treat a permanent failure (like an invalid ID or used key) as a processed submission, so it's removed from the queue.
-                    processedSubmissions.push(submission);
                     failedSubmissions.push(submission);
                 }
             }
             
-            // Remove all processed submissions from the queue, regardless of success or failure.
-            const remainingSubmissions = offlineSubmissions.filter(sub => 
-                !processedSubmissions.some(p => p.privateId === sub.privateId && p.key === sub.key)
-            );
+            const newOfflineSubmissions = offlineSubmissions.filter(sub => {
+                const isFailed = failedSubmissions.some(
+                    failed => failed.privateId === sub.privateId && failed.key === sub.key
+                );
+                const isSuccessful = successfulSubmissions.some(
+                    successful => successful.privateId === sub.privateId && successful.key === sub.key
+                );
 
-            localStorage.setItem('offlineSubmissions', JSON.stringify(remainingSubmissions));
-            updateOfflineCount();
-
-            if (failedSubmissions.length > 0) {
-                displayMessage(`Sync complete. ${failedSubmissions.length} submission(s) failed validation and were removed.`, 'error');
-            } else {
-                displayMessage('Sync complete. All offline submissions have been synced.', 'success');
-            }
-        };
+                // Only keep submissions that have not been successfully synced
+                // The current logic doesn't re-try permanent failures, so we discard them.
+                return !(isFailed || isSuccessful);
+            });
             
+            localStorage.setItem('offlineSubmissions', JSON.stringify(newOfflineSubmissions));
+            updateOfflineCount();
+            displayMessage('Sync complete. Submissions that failed validation have been removed.', 'success');
+        };
+        
         // Check offline status on page load
         const updateOnlineStatus = () => {
             if (navigator.onLine) {
@@ -253,6 +256,13 @@
                 offlineStatusDiv.textContent = 'You are currently offline. Submissions will be saved locally.';
             }
         };
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+
+        // Check for offline submissions on page load
+        updateOfflineCount();
 
         // Deep linking: Check for a privateId in the URL when the page loads
         const urlParams = new URLSearchParams(window.location.search);
@@ -459,6 +469,10 @@
     </script>
 </body>
 </html>
+
+
+
+
 
 
 
