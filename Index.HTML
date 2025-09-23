@@ -3,164 +3,381 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Healthing Code History</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>HealthingSubs</title>
+    <!-- 
+        NOTE: PWA features (like offline access) are not fully functional
+        in this single-file environment, as they require separate files
+        (service-worker.js and manifest.json) that cannot be included here.
+    -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                    }, err => {
+                        console.log('Service Worker registration failed:', err);
+                    });
+            });
+        }
+    </script>
+    <link rel="manifest" href="/manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
+            font-family: 'Lato', sans-serif;
+            background-color: #252525;
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-gray-800 p-6 sm:p-8 rounded-lg shadow-2xl w-full max-w-lg">
+        <h1 class="text-2xl font-bold mb-4 text-white">My Healthing<span class="text-cyan-500">Club</span>Subs</h1>
+        <p class="text-gray-400 mb-6 text-sm">Submit with Private ID + Healthing Key. Check history with Private ID.</p>
 
-    <main class="w-full max-w-4xl p-8 bg-white rounded-xl shadow-lg">
-        <h1 class="text-3xl font-bold text-left text-gray-800 mb-6">Healthing Code Submission History</h1>
-        <p class="text-left text-gray-600 mb-8">Enter your private ID to view your valid and first-time submissions.</p>
+        <!-- Input Form -->
+        <div id="inputForm" class="space-y-4">
+            <div>
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="privateIdInput" placeholder="Enter or scan Private ID"
+                           class="flex-grow h-12 px-4 py-3 text-white bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
+                    <button id="scanPrivateIdBtn" class="h-12 w-12 flex items-center justify-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                            <path d="M3.75 3.75H7.5v-1.5H3.75a1.5 1.5 0 0 0-1.5 1.5v3.75h1.5v-3.75ZM20.25 2.25h-3.75v1.5h3.75a1.5 1.5 0 0 1 1.5 1.5v3.75h-1.5v-3.75ZM2.25 20.25v-3.75h1.5v3.75a1.5 1.5 0 0 0 1.5 1.5h3.75v-1.5H3.75a1.5 1.5 0 0 1-1.5-1.5ZM16.5 21.75h3.75a1.5 1.5 0 0 0 1.5-1.5v-3.75h-1.5v3.75h-3.75v1.5Z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div>
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="keyInput" placeholder="Enter or scan Healthing Key"
+                           class="flex-grow h-12 px-4 py-3 text-white bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
+                    <button id="scanKeyBtn" class="h-12 w-12 flex items-center justify-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                            <path fill-rule="evenodd" d="M11.5 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM15.25 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM.75 12a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5H1.5a.75.75 0 0 1-.75-.75ZM22.5 12a.75.75 0 0 1-.75.75h-2.25a.75.75 0 0 1 0-1.5h2.25a.75.75 0 0 1 .75.75ZM18.75 15a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0v-2.25a.75.75 0 0 0-.75-.75ZM18.75 6.75a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0V7.5a.75.75 0 0 0-.75-.75ZM5.25 15a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0v-2.25a.75.75 0 0 0-.75-.75ZM5.25 6.75a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 1.5 0V7.5a.75.75 0 0 0-.75-.75ZM6 10.75a.75.75 0 0 0-1.5 0v5.5a.75.75 0 0 0 1.5 0v-5.5ZM10.5 7.5a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75ZM10.5 16.5a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
 
-        <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 mb-6">
-            <input type="text" id="privateIdInput" placeholder="Enter your private ID" class="w-full md:w-auto p-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
-            <button id="fetchButton" class="w-full md:w-auto px-6 py-3 text-lg font-semibold text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200">
-                Fetch Submissions
+            <div class="flex flex-col space-y-3">
+                <button id="submitBtn" class="w-full px-4 py-3 bg-cyan-500 text-gray-900 font-bold rounded-lg shadow-md hover:bg-cyan-600 transition duration-300 transform hover:scale-105">
+                    Submit Key
+                </button>
+                <button id="checkHistoryBtn" class="w-full px-4 py-3 bg-gray-700 text-white font-bold rounded-lg shadow-md hover:bg-gray-800 transition duration-300 transform hover:scale-105">
+                    Check History
+                </button>
+            </div>
+        </div>
+        
+        <!-- About Section -->
+        <div class="mt-8 text-sm text-white">
+            <p class="mb-2">
+                <span class="font-bold">HealthingClub, part of the Open Access Health Society, offers free membership to all through verified eco-friendly habits.</span>
+            </p>
+            <p class="mb-2">
+                The HealthingClubSubs makes it easy to submit, store, and track your healthing proof.
+            </p>
+            <p class="text-center">
+                <a href="https://chat.whatsapp.com/ExampleChannelLink" target="_blank" class="text-cyan-400 hover:text-cyan-500 transition-colors duration-300 underline">Join our WhatsApp Channel</a>
+                <span class="mx-2">|</span>
+                <span>support@healthingsubs.com | +1 (123) 456-7890</span>
+            </p>
+        </div>
+
+        <!-- QR Code Scanner Section -->
+        <div id="scannerSection" class="hidden mt-8">
+            <h2 id="scanner-title" class="text-2xl font-bold mb-4 text-white">Scan QR Code</h2>
+            <div id="qr-reader" class="w-full p-2 border border-gray-600 rounded-lg"></div>
+            <button id="cancelScanBtn" class="w-full mt-4 px-4 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
+                Cancel Scan
             </button>
         </div>
 
-        <div id="messageContainer" class="text-left text-sm font-medium h-6"></div>
-
-        <div id="resultsContainer" class="hidden overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 rounded-lg overflow-hidden shadow-sm">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            Healthing Code
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            Submitted At
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            First Submission
-                        </th>
-                    </tr>
-                </thead>
-                <tbody id="resultsTableBody" class="bg-white divide-y divide-gray-200">
-                    <!-- Results will be injected here -->
-                </tbody>
-            </table>
+        <!-- Submission History Report -->
+        <div id="historyReport" class="hidden mt-8">
+            <h2 class="text-2xl font-bold mb-4 text-white">Submission History</h2>
+            <div id="historyList" class="space-y-4 overflow-y-auto max-h-64 p-2 border border-gray-600 rounded-lg">
+                <!-- History items will be dynamically added here -->
+            </div>
+            <button id="backToFormBtn" class="w-full mt-4 px-4 py-3 bg-gray-700 text-white font-bold rounded-lg hover:bg-gray-800 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
+                Back to Submission
+            </button>
         </div>
 
-    </main>
+        <!-- Message area -->
+        <div id="message" class="mt-6 p-4 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out"></div>
+    </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const privateIdInput = document.getElementById('privateIdInput');
-            const fetchButton = document.getElementById('fetchButton');
-            const messageContainer = document.getElementById('messageContainer');
-            const resultsContainer = document.getElementById('resultsContainer');
-            const resultsTableBody = document.getElementById('resultsTableBody');
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-            // Replace with your actual Supabase URL and key
-            const supabaseUrl = 'https://wprgkybgolraukwjexth.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwcmdreWJnb2xyYXVrd2pleHRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA5MzAsImV4cCI6MjA3MzIzNjkzMH0.5j9oUoRJNac37pU7MIspfK6Ei4Vol4NnMMCty1adGDA';
-            const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        // NOTE: For a real-world application, these keys should be handled securely,
+        // e.g., using environment variables on a server.
+        const SUPABASE_URL = 'https://wprgkybgolraukwjexth.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwcmdreWJnb2xyYXVrd2pleHRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA5MzAsImV4cCI6MjA3MzIzNjkzMH0.5j9oUoRJNac37pU7MIspfK6Ei4Vol4NnMMCty1adGDA';
 
-            fetchButton.addEventListener('click', async () => {
-                const privateId = privateIdInput.value.trim();
-                messageContainer.textContent = '';
-                resultsContainer.classList.add('hidden');
-                resultsTableBody.innerHTML = '';
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-                if (!privateId) {
-                    messageContainer.textContent = 'Please enter a private ID.';
-                    messageContainer.classList.remove('text-green-500', 'text-gray-500');
-                    messageContainer.classList.add('text-red-500');
+        // DOM elements
+        const privateIdInput = document.getElementById('privateIdInput');
+        const keyInput = document.getElementById('keyInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const checkHistoryBtn = document.getElementById('checkHistoryBtn');
+        const scanPrivateIdBtn = document.getElementById('scanPrivateIdBtn');
+        const scanKeyBtn = document.getElementById('scanKeyBtn');
+        const cancelScanBtn = document.getElementById('cancelScanBtn');
+        const messageDiv = document.getElementById('message');
+        const inputForm = document.getElementById('inputForm');
+        const historyReport = document.getElementById('historyReport');
+        const historyList = document.getElementById('historyList');
+        const backToFormBtn = document.getElementById('backToFormBtn');
+        const scannerSection = document.getElementById('scannerSection');
+
+        let html5Qrcode = null;
+        let scanTarget = null; // 'privateId' or 'healthKey'
+
+        // Deep linking: Check for a privateId in the URL when the page loads
+        const urlParams = new URLSearchParams(window.location.search);
+        const privateIdFromUrl = urlParams.get('privateId');
+        if (privateIdFromUrl) {
+            privateIdInput.value = privateIdFromUrl;
+            displayMessage('Private ID found in URL. Ready to check history or submit.', 'success');
+        }
+
+        // Function to display messages
+        const displayMessage = (text, type) => {
+            messageDiv.textContent = text;
+            messageDiv.classList.remove('bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700', 'bg-slate-100', 'text-slate-700');
+            if (type === 'error') {
+                messageDiv.classList.add('bg-red-100', 'text-red-700');
+            } else if (type === 'success') {
+                messageDiv.classList.add('bg-green-100', 'text-green-700');
+            } else if (type === 'info') {
+                messageDiv.classList.add('bg-slate-100', 'text-slate-700');
+            }
+        };
+
+        // Function to check if Private ID is valid
+        const isPrivateIdValid = async (privateId) => {
+            if (!privateId) {
+                displayMessage("Private ID cannot be empty.", 'error');
+                return false;
+            }
+            // Supabase query to check for Private ID validity
+            const { data: idData, error: idError } = await supabase
+                .from('valid_private_ids')
+                .select('id')
+                .eq('id', privateId)
+                .single();
+
+            if (idError || !idData) {
+                displayMessage("Invalid Private ID.", 'error');
+                return false;
+            }
+            return true;
+        };
+
+        // Event listener for the "Check History" button
+        checkHistoryBtn.addEventListener('click', async () => {
+            const privateId = privateIdInput.value.trim();
+            if (await isPrivateIdValid(privateId)) {
+                await fetchAndDisplayHistory(privateId);
+                inputForm.classList.add('hidden');
+                historyReport.classList.remove('hidden');
+                displayMessage('', 'none'); // Clear messages on form switch
+            }
+        });
+
+        // Event listener for the main "Submit Key" button
+        submitBtn.addEventListener('click', async () => {
+            const privateId = privateIdInput.value.trim();
+            const key = keyInput.value.trim();
+
+            if (!key) {
+                displayMessage("Healthing Key cannot be empty.", 'error');
+                return;
+            }
+            if (!(await isPrivateIdValid(privateId))) {
+                return;
+            }
+
+            try {
+                // Step 1: Check if the Healthing Key exists and is unused
+                const { data: keyData, error: keyError } = await supabase
+                    .from('healthing_keys')
+                    .select('is_used')
+                    .eq('key', key)
+                    .single();
+
+                if (keyError || !keyData) {
+                    displayMessage("Invalid Healthing Key.", 'error');
                     return;
                 }
 
-                messageContainer.textContent = 'Validating private ID...';
-                messageContainer.classList.remove('text-red-500', 'text-green-500');
-                messageContainer.classList.add('text-gray-500');
-                fetchButton.disabled = true;
+                if (keyData.is_used) {
+                    displayMessage("This Healthing Key has already been used.", 'error');
+                    return;
+                }
 
-                try {
-                    // First, validate the private ID against the new 'valid_private_ids' table
-                    const { data: idData, error: idError } = await supabase
-                        .from('valid_private_ids')
-                        .select('private_id')
-                        .eq('private_id', privateId)
-                        .single();
-                    
-                    if (idError && idError.code === 'PGRST116') { // No rows found
-                        messageContainer.textContent = 'Invalid private ID. Please check your ID and try again.';
-                        messageContainer.classList.remove('text-green-500', 'text-gray-500');
-                        messageContainer.classList.add('text-red-500');
-                        return;
-                    }
-                    if (idError) {
-                        throw new Error(idError.message);
-                    }
-
-                    // If the ID is valid, proceed to fetch submissions
-                    messageContainer.textContent = 'Fetching submissions...';
-                    messageContainer.classList.remove('text-red-500', 'text-green-500');
-                    messageContainer.classList.add('text-gray-500');
-                    
-                    const { data, error } = await supabase.rpc('get_user_valid_submissions', {
-                        user_private_id: privateId
+                // Step 2: If Key is valid and unused, log the submission
+                const { error: submissionError } = await supabase
+                    .from('submission_history')
+                    .insert({
+                        private_id: privateId,
+                        healthing_key: key,
+                        timestamp: new Date().toISOString()
                     });
 
-                    if (error) {
-                        throw new Error(error.message);
-                    }
-
-                    if (data && data.length > 0) {
-                        messageContainer.textContent = `Found ${data.length} submissions.`;
-                        messageContainer.classList.remove('text-red-500', 'text-gray-500');
-                        messageContainer.classList.add('text-green-500');
-                        resultsContainer.classList.remove('hidden');
-
-                        data.sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at));
-
-                        data.forEach(submission => {
-                            const row = document.createElement('tr');
-                            row.classList.add('hover:bg-gray-50');
-
-                            const firstSubmissionText = submission.is_first_submission ? 'Yes' : 'No';
-                            const firstSubmissionColor = submission.is_first_submission ? 'text-green-600' : 'text-red-600';
-
-                            row.innerHTML = `
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    ${submission.healthing_code}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    ${new Date(submission.submitted_at).toLocaleString()}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold ${firstSubmissionColor}">
-                                    ${firstSubmissionText}
-                                </td>
-                            `;
-                            resultsTableBody.appendChild(row);
-                        });
-                    } else {
-                        messageContainer.textContent = 'No submissions found for this ID.';
-                        messageContainer.classList.remove('text-green-500', 'text-gray-500');
-                        messageContainer.classList.add('text-red-500');
-                    }
-
-                } catch (err) {
-                    console.error('An error occurred:', err);
-                    messageContainer.textContent = 'An error occurred. Please try again.';
-                    messageContainer.classList.remove('text-green-500', 'text-gray-500');
-                    messageContainer.classList.add('text-red-500');
-                } finally {
-                    fetchButton.disabled = false;
+                if (submissionError) {
+                    throw submissionError;
                 }
+
+                // Step 3: Mark the Healthing Key as used
+                const { error: updateError } = await supabase
+                    .from('healthing_keys')
+                    .update({ is_used: true })
+                    .eq('key', key);
+
+                if (updateError) {
+                    throw updateError;
+                }
+
+                displayMessage(`Submission successful! Healthing Key is now used.`, 'success');
+                keyInput.value = ''; // Clear the Key input
+
+            } catch (error) {
+                console.error('Submission error:', error.message);
+                displayMessage(`An error occurred: ${error.message}`, 'error');
+            }
+        });
+
+        // Function to fetch and display submission history
+        const fetchAndDisplayHistory = async (privateId) => {
+            try {
+                const { data, error } = await supabase
+                    .from('submission_history')
+                    .select('*')
+                    .eq('private_id', privateId)
+                    .order('timestamp', { ascending: false });
+
+                if (error) {
+                    throw error;
+                }
+
+                historyList.innerHTML = ''; // Clear previous history
+                if (data.length === 0) {
+                    historyList.innerHTML = '<p class="text-gray-400 text-center">No submission history found for this ID.</p>';
+                    return;
+                }
+
+                data.forEach(item => {
+                    const submissionTime = new Date(item.timestamp).toLocaleString();
+                    const historyItem = document.createElement('div');
+                    historyItem.classList.add('p-3', 'bg-gray-700', 'rounded-lg', 'border', 'border-gray-600', 'text-gray-200');
+                    historyItem.innerHTML = `
+                        <p><strong>Key:</strong> ${item.healthing_key}</p>
+                        <p class="text-xs text-gray-400">Submitted: ${submissionTime}</p>
+                    `;
+                    historyList.appendChild(historyItem);
+                });
+            } catch (error) {
+                console.error('Error fetching history:', error.message);
+                displayMessage(`Error fetching history: ${error.message}`, 'error');
+            }
+        };
+
+        // Function to stop the scanner and hide the UI, handling different states
+        const stopScanner = () => {
+            // First, immediately hide the scanner UI and show the form
+            scannerSection.classList.add('hidden');
+            inputForm.classList.remove('hidden');
+            displayMessage('', 'none'); // Clear message
+
+            // Attempt to stop the camera stream only if the scanner is running
+            if (html5Qrcode && html5Qrcode.getState() !== 0) {
+                html5Qrcode.stop().catch(err => {
+                    console.warn("Html5Qrcode.stop() failed, but UI is updated:", err);
+                });
+            }
+            html5Qrcode = null;
+        };
+
+        // Event listener for the "Back to Form" button
+        backToFormBtn.addEventListener('click', () => {
+            historyReport.classList.add('hidden');
+            inputForm.classList.remove('hidden');
+            displayMessage('', 'none');
+            keyInput.value = '';
+        });
+
+        // Main QR Code Scanner Logic
+        const startScanner = (target) => {
+            scanTarget = target;
+            inputForm.classList.add('hidden');
+            scannerSection.classList.remove('hidden');
+            document.getElementById('scanner-title').textContent = `Scan ${target === 'privateId' ? 'Private ID' : 'Healthing Key'}`;
+            displayMessage('Initializing camera...', 'info');
+
+            html5Qrcode = new Html5Qrcode("qr-reader");
+
+            const onScanSuccess = (decodedText) => {
+                // Fill the input field with the scanned text
+                if (scanTarget === 'privateId') {
+                    privateIdInput.value = decodedText;
+                    displayMessage('Private ID scanned successfully.', 'success');
+                } else { // scanTarget === 'healthKey'
+                    keyInput.value = decodedText;
+                    displayMessage('Healthing Key scanned. Submitting...', 'info');
+                }
+                
+                // Stop the scanner. The logic to show/hide sections is now in stopScanner()
+                stopScanner();
+
+                // For Healthing Key, auto-submit after a slight delay
+                if (scanTarget === 'healthKey') {
+                    setTimeout(() => {
+                        submitBtn.click();
+                    }, 200);
+                }
+            };
+
+            const onScanError = (errorMessage) => {
+                // Suppress constant error logging for a smoother experience
+            };
+
+            // Force rear camera by specifying "environment" facing mode
+            html5Qrcode.start(
+                { facingMode: 'environment' },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                onScanSuccess,
+                onScanError
+            ).catch(err => {
+                displayMessage(`Could not start scanning: ${err.message}. Please check camera permissions.`, 'error');
+                console.error("Failed to start scanning:", err);
+                stopScanner();
             });
+        };
+
+        // Event listeners for the scan buttons
+        scanPrivateIdBtn.addEventListener('click', () => {
+            startScanner('privateId');
+        });
+        scanKeyBtn.addEventListener('click', () => {
+            startScanner('healthKey');
+        });
+        
+        // Event listener for the "Cancel Scan" button
+        cancelScanBtn.addEventListener('click', () => {
+            stopScanner();
         });
     </script>
-
 </body>
 </html>
+
+
+
